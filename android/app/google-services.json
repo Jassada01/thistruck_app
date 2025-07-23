@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "21170324156",
+    "project_id": "thistruckpushnotification",
+    "storage_bucket": "thistruckpushnotification.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:21170324156:android:ea0c1e728d1ab0dbecc6b9",
+        "android_client_info": {
+          "package_name": "com.jsolutionsnext.thistruckapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_tKRE_YNxPk2niYviDDQrRqwlrLeJjhY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
