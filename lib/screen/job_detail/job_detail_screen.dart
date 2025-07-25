@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../service/api_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
@@ -1072,7 +1071,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
       builder: (context, fontProvider, child) {
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -1088,57 +1087,41 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header with job start time
               Row(
                 children: [
-                  Icon(Icons.info_outline, color: colors.primary, size: 18),
-                  SizedBox(width: 8),
+                  Icon(Icons.info_outline, color: colors.primary, size: 16),
+                  SizedBox(width: 6),
                   Text(
                     'ข้อมูลงาน',
                     style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(14.0),
+                      fontSize: fontProvider.getScaledFontSize(13.0),
                       fontWeight: FontWeight.bold,
                       color: colors.textPrimary,
                     ),
                   ),
                   Spacer(),
-                  // เวลาเริ่มงานที่มุมขวา
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'วันเริ่มงาน',
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(9.0),
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                  if (_tripData!['jobStartDateTime'] != null)
+                    Text(
+                      _formatDateTime(_tripData!['jobStartDateTime']),
+                      style: GoogleFonts.notoSansThai(
+                        fontSize: fontProvider.getScaledFontSize(10.0),
+                        color: colors.primary,
+                        fontWeight: FontWeight.w600,
                       ),
-                      Text(
-                        _formatDateTime(_tripData!['jobStartDateTime']),
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(10.0),
-                          color: colors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
               SizedBox(height: 12),
-              // แสดงข้อมูลพื้นฐาน
-              _buildBasicJobInfo(),
-              // แสดงข้อมูลเพิ่มเติม (ถ้ามี)
-              _buildAdditionalJobInfo(),
-              // Row: คนขับ และ ทะเบียนรถ
+              // Compact grid layout
               Row(
                 children: [
                   Expanded(child: _buildCompactInfoRow('คนขับ', _tripData!['driver_name'])),
                   SizedBox(width: 12),
-                  Expanded(child: _buildCompactInfoRow('ทะเบียนรถ', _tripData!['truck_licenseNo'])),
+                  Expanded(child: _buildCompactInfoRow('ทะเบียน', _tripData!['truck_licenseNo'])),
                 ],
               ),
-              // Row: Container ID และ หมายเลขซีล  
+              SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(child: _buildEditableContainerRow()),
@@ -1146,9 +1129,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   Expanded(child: _buildEditableSealRow()),
                 ],
               ),
-              // น้ำหนักตู้ (full width)
+              SizedBox(height: 8),
               _buildEditableWeightRow(),
-              // หมายเหตุ (ถ้ามี)
+              // Job remark if exists
               if (_tripData!['job_remark'] != null && _tripData!['job_remark'].toString().isNotEmpty) ...[
                 SizedBox(height: 8),
                 _buildRemarkSection(),
@@ -1166,32 +1149,29 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(10.0),
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(9.0),
+                color: colors.textSecondary,
+                fontWeight: FontWeight.w500,
               ),
-              SizedBox(height: 2),
-              Text(
-                displayValue,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 2),
+            Text(
+              displayValue,
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(11.0),
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         );
       },
     );
@@ -1204,55 +1184,52 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Container ID',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(10.0),
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.w500,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Container ID',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(width: 4),
+                if (_isUpdatingContainer)
+                  SizedBox(
+                    width: 10,
+                    height: 10,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+                    ),
+                  )
+                else
+                  GestureDetector(
+                    onTap: _updateContainerID,
+                    child: Icon(
+                      Icons.edit,
+                      size: 12,
+                      color: colors.primary.withOpacity(0.7),
                     ),
                   ),
-                  SizedBox(width: 4),
-                  if (_isUpdatingContainer)
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
-                      ),
-                    )
-                  else
-                    GestureDetector(
-                      onTap: _updateContainerID,
-                      child: Icon(
-                        Icons.edit,
-                        size: 16,
-                        color: Colors.blue.withOpacity(0.7),
-                      ),
-                    ),
-                ],
+              ],
+            ),
+            SizedBox(height: 2),
+            Text(
+              displayValue,
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(11.0),
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
-              SizedBox(height: 2),
-              Text(
-                displayValue,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         );
       },
     );
@@ -1265,55 +1242,42 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'หมายเลขซีล',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(10.0),
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'หมายเลขซีล',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w500,
                   ),
-                  SizedBox(width: 4),
-                  if (_isUpdatingContainer)
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
-                      ),
-                    )
-                  else
-                    GestureDetector(
-                      onTap: () => _updateSealNo(),
-                      child: Icon(
-                        Icons.edit,
-                        size: 16,
-                        color: Colors.blue.withOpacity(0.7),
-                      ),
-                    ),
-                ],
-              ),
-              SizedBox(height: 2),
-              Text(
-                displayValue,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                SizedBox(width: 4),
+                GestureDetector(
+                  onTap: _updateSealNo,
+                  child: Icon(
+                    Icons.edit,
+                    size: 12,
+                    color: colors.primary.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 2),
+            Text(
+              displayValue,
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(11.0),
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         );
       },
     );
@@ -1321,65 +1285,91 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
 
   Widget _buildEditableWeightRow() {
     final colors = AppThemeConfig.AppColorScheme.light();
-    final containerWeight = _tripData!['containerWeight']?.toString() ?? '0.00';
-    
-    String displayValue;
-    if (containerWeight != '0.00' && containerWeight.isNotEmpty) {
-      // แปลงเป็นตัวเลขและจัดรูปแบบด้วยลูกน้ำ
-      final weight = double.tryParse(containerWeight) ?? 0.0;
-      final formatter = NumberFormat('#,##0.00', 'en_US');
-      displayValue = '${formatter.format(weight)} กก.';
-    } else {
-      displayValue = 'ไม่ระบุ';
-    }
+    final containerWeight = _tripData!['containerWeight']?.toString() ?? '';
+    final displayValue = containerWeight.isNotEmpty ? '$containerWeight กก.' : 'ไม่ระบุ';
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 6),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'น้ำหนักตู้',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(width: 4),
+                GestureDetector(
+                  onTap: _updateContainerWeight,
+                  child: Icon(
+                    Icons.edit,
+                    size: 12,
+                    color: colors.primary.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 2),
+            Text(
+              displayValue,
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(11.0),
+                color: colors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRemarkSection() {
+    final colors = AppThemeConfig.AppColorScheme.light();
+    final remark = _tripData!['job_remark']?.toString() ?? '';
+    
+    return Consumer<FontSizeProvider>(
+      builder: (context, fontProvider, child) {
+        return Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: colors.warning.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: colors.warning.withOpacity(0.3)),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
+                  Icon(Icons.note_alt_outlined, size: 12, color: colors.warning),
+                  SizedBox(width: 4),
                   Text(
-                    'น้ำหนักตู้',
+                    'หมายเหตุ',
                     style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(10.0),
-                      color: colors.textSecondary,
-                      fontWeight: FontWeight.w500,
+                      fontSize: fontProvider.getScaledFontSize(9.0),
+                      color: colors.warning,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  if (_isUpdatingContainer)
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
-                      ),
-                    )
-                  else
-                    GestureDetector(
-                      onTap: () => _updateContainerWeight(),
-                      child: Icon(
-                        Icons.edit,
-                        size: 16,
-                        color: Colors.blue.withOpacity(0.7),
-                      ),
-                    ),
                 ],
               ),
-              SizedBox(height: 2),
+              SizedBox(height: 4),
               Text(
-                displayValue,
+                remark,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(10.0),
                   color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w400,
                 ),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -1462,60 +1452,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     return Column(children: additionalRows);
   }
 
-  Widget _buildRemarkSection() {
-    final colors = AppThemeConfig.AppColorScheme.light();
-    final remark = _tripData!['job_remark']?.toString() ?? '';
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: colors.warning.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: colors.warning.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.note_alt_outlined,
-                    size: 14,
-                    color: colors.warning,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'หมายเหตุ',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(10.0),
-                      color: colors.warning,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 6),
-              Text(
-                remark,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
-                  color: colors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildLocations() {
     if (_tripData == null || _tripData!['trip_locations'] == null) return SizedBox.shrink();
@@ -2009,7 +1945,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
       ),
       body: Column(
         children: [
-          // Bangchak-style Header
+          // Compact Header
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -2019,58 +1955,71 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 colors: [
                   colors.primary,
                   colors.primary.withOpacity(0.8),
-                  colors.primary.withOpacity(0.6),
                 ],
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: colors.primary.withOpacity(0.3),
-                  offset: Offset(0, 4),
-                  blurRadius: 12,
-                  spreadRadius: 0,
+                  color: colors.primary.withOpacity(0.2),
+                  offset: Offset(0, 2),
+                  blurRadius: 8,
                 ),
               ],
             ),
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Row(
                   children: [
-                    // Title
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.assignment_turned_in_rounded,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Consumer<FontSizeProvider>(
-                            builder: (context, fontProvider, child) {
-                              return Text(
-                                _tripData!['job_name'] ,
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.assignment_turned_in_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Consumer<FontSizeProvider>(
+                        builder: (context, fontProvider, child) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _tripData?['job_name'] ?? 'ไม่มีข้อมูลงาน',
                                 style: GoogleFonts.notoSansThai(
-                                  fontSize: fontProvider.getScaledFontSize(20.0),
+                                  fontSize: fontProvider.getScaledFontSize(16.0),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (_tripData?['customer_name'] != null) ...[
+                                SizedBox(height: 2),
+                                Text(
+                                  'ลูกค้า: ${_tripData!['customer_name']}',
+                                  style: GoogleFonts.notoSansThai(
+                                    fontSize: fontProvider.getScaledFontSize(12.0),
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
