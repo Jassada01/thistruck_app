@@ -3,6 +3,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'notification_navigation_service.dart';
+import 'dart:convert';
 
 // Background message handler
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -125,7 +127,8 @@ class NotificationService {
         print('🔔 Details: ${response.notificationResponseType.name}');
         print('================================================\n');
         
-        
+        // Handle local notification tap
+        NotificationNavigationService.handleNotificationTap(response.payload);
         
         onNotificationTapped?.call('👆 Notification tapped: ${response.payload ?? 'No payload'}');
       },
@@ -144,8 +147,7 @@ class NotificationService {
     // Listen for message taps when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       _logNotificationDetails('👆 Message Tap (Background)', message);
-      
-      
+      _handleNotificationTap(message);
       onMessageReceived?.call('👆 Clicked: ${message.notification?.title}');
     });
     
@@ -160,8 +162,7 @@ class NotificationService {
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       _logNotificationDetails('🚀 App Opened from Terminated State', initialMessage);
-      
-      
+      _handleNotificationTap(initialMessage);
       onMessageReceived?.call('🚀 App opened from: ${initialMessage.notification?.title}');
     }
   }
@@ -200,7 +201,7 @@ class NotificationService {
       final String title = message.notification?.title ?? 'Notification';
       final String body = message.notification?.body ?? 'You have a new message';
       
-      final String payload = message.data.toString();
+      final String payload = json.encode(message.data);
       
       print('🔔 Showing local notification: $title');
       await _localNotifications.show(
@@ -357,6 +358,19 @@ class NotificationService {
     }
     
     print('===============================================\n');
+  }
+
+  // Handle notification tap from FCM message
+  void _handleNotificationTap(RemoteMessage message) {
+    print('🎯 Handling notification tap from FCM message');
+    print('📦 Message data: ${message.data}');
+    
+    if (message.data.isNotEmpty) {
+      // ส่ง data ไปยัง NotificationNavigationService เพื่อจัดการ navigation
+      NotificationNavigationService.handleNotificationNavigation(message.data);
+    } else {
+      print('⚠️ No data in notification message');
+    }
   }
 
 }

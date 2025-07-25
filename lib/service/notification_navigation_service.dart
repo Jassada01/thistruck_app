@@ -117,7 +117,7 @@ class NotificationNavigationService {
 
     try {
       // ลองแปลงจาก JSON string ปกติก่อน
-      if (payload.startsWith('{"') && payload.endsWith('"}')) {
+      if (payload.startsWith('{') && payload.endsWith('}')) {
         return json.decode(payload) as Map<String, dynamic>;
       }
       

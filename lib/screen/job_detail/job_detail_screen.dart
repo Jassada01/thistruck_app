@@ -303,10 +303,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(currentStage).withValues(alpha: 0.1),
+                    color: _getStatusColor(currentStage).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: _getStatusColor(currentStage).withValues(alpha: 0.3),
+                      color: _getStatusColor(currentStage).withOpacity(0.3),
                     ),
                   ),
                   child: Text(
@@ -332,10 +332,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      color: Colors.blue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.3),
+                        color: Colors.blue.withOpacity(0.3),
                       ),
                     ),
                     child: Row(
@@ -548,7 +548,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
           print('✅ Map URL launched successfully');
         } else {
           // ถ้าไม่สามารถเปิดได้ ลองเปิดผ่าน browser
-          final fallbackUrl = Uri.parse(mapUrl);
+          final fallbackUrl = Uri.parse(mapUrl.startsWith('http') ? mapUrl : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(mapUrl)}');
           if (await canLaunchUrl(fallbackUrl)) {
             await launchUrl(
               fallbackUrl,
@@ -953,7 +953,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: colors.primary.withValues(alpha: 0.1),
+                            color: colors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -1023,11 +1023,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
               onPressed: _isUpdatingStatus ? null : _updateWorkStatus,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isUpdatingStatus 
-                    ? Colors.grey.withValues(alpha: 0.5)
+                    ? Colors.grey.withOpacity(0.5)
                     : _getStatusColor(currentStage),
                 foregroundColor: Colors.white,
                 elevation: _isUpdatingStatus ? 0 : 3,
-                shadowColor: _getStatusColor(currentStage).withValues(alpha: 0.3),
+                shadowColor: _getStatusColor(currentStage).withOpacity(0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -1079,7 +1079,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 offset: Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -1235,7 +1235,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       child: Icon(
                         Icons.edit,
                         size: 16,
-                        color: Colors.blue.withValues(alpha: 0.7),
+                        color: Colors.blue.withOpacity(0.7),
                       ),
                     ),
                 ],
@@ -1296,7 +1296,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       child: Icon(
                         Icons.edit,
                         size: 16,
-                        color: Colors.blue.withValues(alpha: 0.7),
+                        color: Colors.blue.withOpacity(0.7),
                       ),
                     ),
                 ],
@@ -1366,7 +1366,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       child: Icon(
                         Icons.edit,
                         size: 16,
-                        color: Colors.blue.withValues(alpha: 0.7),
+                        color: Colors.blue.withOpacity(0.7),
                       ),
                     ),
                 ],
@@ -1472,10 +1472,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
           width: double.infinity,
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colors.warning.withValues(alpha: 0.05),
+            color: colors.warning.withOpacity(0.05),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: colors.warning.withValues(alpha: 0.2),
+              color: colors.warning.withOpacity(0.2),
               width: 1,
             ),
           ),
@@ -1534,7 +1534,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 offset: Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -1559,7 +1559,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colors.success.withValues(alpha: 0.1),
+                      color: colors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -1682,7 +1682,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 offset: Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -1707,7 +1707,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colors.warning.withValues(alpha: 0.1),
+                      color: colors.warning.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -1825,13 +1825,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     if (log['complete_flag'] == 1) {
       // ขั้นตอนที่เสร็จแล้ว
       itemColor = colors.success;
-      bgColor = colors.success.withValues(alpha: 0.05);
-      borderColor = colors.success.withValues(alpha: 0.2);
+      bgColor = colors.success.withOpacity(0.05);
+      borderColor = colors.success.withOpacity(0.2);
     } else if (log['complete_flag'] == null) {
       // ขั้นตอนปัจจุบัน
       itemColor = colors.primary;
-      bgColor = colors.primary.withValues(alpha: 0.05);
-      borderColor = colors.primary.withValues(alpha: 0.2);
+      bgColor = colors.primary.withOpacity(0.05);
+      borderColor = colors.primary.withOpacity(0.2);
     }
     
     return Consumer<FontSizeProvider>(
@@ -1854,7 +1854,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: itemColor.withValues(alpha: 0.3),
+                      color: itemColor.withOpacity(0.3),
                       offset: Offset(0, 2),
                       blurRadius: 4,
                     ),
@@ -1897,7 +1897,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: itemColor.withValues(alpha: 0.1),
+                          color: itemColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -1963,254 +1963,381 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     final colors = AppThemeConfig.AppColorScheme.light();
     
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: colors.primary,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Consumer<FontSizeProvider>(
-          builder: (context, fontProvider, child) {
-            return Text(
-              'รายละเอียดงาน',
-              style: GoogleFonts.notoSansThai(
-                color: Colors.white,
-                fontSize: fontProvider.getScaledFontSize(16.0),
-                fontWeight: FontWeight.bold,
+        leading: Container(
+          margin: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                offset: Offset(0, 2),
+                blurRadius: 8,
               ),
-            );
-          },
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(Icons.arrow_back_rounded, color: colors.primary),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white, size: 20),
-            onPressed: _loadJobDetail,
+          Container(
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: Offset(0, 2),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: Icon(Icons.refresh_rounded, color: colors.primary, size: 20),
+              onPressed: _loadJobDetail,
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: colors.primary),
-                  SizedBox(height: 16),
-                  Consumer<FontSizeProvider>(
-                    builder: (context, fontProvider, child) {
-                      return Text(
-                        'กำลังโหลดข้อมูล...',
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(14.0),
-                          color: colors.textSecondary,
-                        ),
-                      );
-                    },
-                  ),
+      body: Column(
+        children: [
+          // Bangchak-style Header
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primary,
+                  colors.primary.withOpacity(0.8),
+                  colors.primary.withOpacity(0.6),
                 ],
               ),
-            )
-          : _errorMessage.isNotEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: colors.error),
-                      SizedBox(height: 16),
-                      Consumer<FontSizeProvider>(
-                        builder: (context, fontProvider, child) {
-                          return Text(
-                            _errorMessage,
-                            style: GoogleFonts.notoSansThai(
-                              fontSize: fontProvider.getScaledFontSize(14.0),
-                              color: colors.error,
-                            ),
-                            textAlign: TextAlign.center,
-                          );
-                        },
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _loadJobDetail,
-                        icon: Icon(Icons.refresh, size: 16),
-                        label: Consumer<FontSizeProvider>(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.primary.withOpacity(0.3),
+                  offset: Offset(0, 4),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Column(
+                  children: [
+                    // Title
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(0),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.assignment_turned_in_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Consumer<FontSizeProvider>(
+                            builder: (context, fontProvider, child) {
+                              return Text(
+                                _tripData!['job_name'] ,
+                                style: GoogleFonts.notoSansThai(
+                                  fontSize: fontProvider.getScaledFontSize(20.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          // Content
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: CircularProgressIndicator(
+                            color: colors.primary,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Consumer<FontSizeProvider>(
                           builder: (context, fontProvider, child) {
                             return Text(
-                              'ลองใหม่',
+                              'กำลังโหลดข้อมูล...',
                               style: GoogleFonts.notoSansThai(
-                                fontSize: fontProvider.getScaledFontSize(12.0),
+                                fontSize: fontProvider.getScaledFontSize(16.0),
+                                color: colors.textSecondary,
+                                fontWeight: FontWeight.w500,
                               ),
                             );
                           },
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              : DefaultTabController(
-                  length: 3,
-                  child: NestedScrollView(
-                    headerSliverBuilder: (context, innerBoxIsScrolled) {
-                      return [
-                        SliverToBoxAdapter(
-                          child: Column(
-                            children: [
-                              _buildHeader(),
-                              _buildStatusUpdateButton(),
-                              _buildJobInfo(),
-                            ],
-                          ),
-                        ),
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _StickyTabBarDelegate(
-                            child: Container(
-                              color: Colors.grey[100],
-                              child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                padding: EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: Colors.grey.shade200, width: 1),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.08),
-                                      offset: Offset(0, 2),
-                                      blurRadius: 8,
-                                      spreadRadius: 0,
+                      ],
+                    ),
+                  )
+                : _errorMessage.isNotEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: colors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.error_outline_rounded, 
+                                size: 48, 
+                                color: colors.error
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Consumer<FontSizeProvider>(
+                              builder: (context, fontProvider, child) {
+                                return Text(
+                                  _errorMessage,
+                                  style: GoogleFonts.notoSansThai(
+                                    fontSize: fontProvider.getScaledFontSize(16.0),
+                                    color: colors.error,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                );
+                              },
+                            ),
+                            SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: _loadJobDetail,
+                              icon: Icon(Icons.refresh_rounded, size: 20),
+                              label: Consumer<FontSizeProvider>(
+                                builder: (context, fontProvider, child) {
+                                  return Text(
+                                    'ลองใหม่',
+                                    style: GoogleFonts.notoSansThai(
+                                      fontSize: fontProvider.getScaledFontSize(14.0),
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  ],
+                                  );
+                                },
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colors.primary,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: Consumer<FontSizeProvider>(
-                                  builder: (context, fontProvider, child) {
-                                    return TabBar(
-                                      controller: _tabController,
-                                      indicatorSize: TabBarIndicatorSize.tab,
-                                      dividerColor: Colors.transparent,
-                                      indicator: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            colors.primary,
-                                            colors.primary.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(
+                        margin: EdgeInsets.only(top: 8),
+                        child: DefaultTabController(
+                          length: 3,
+                          child: NestedScrollView(
+                            headerSliverBuilder: (context, innerBoxIsScrolled) {
+                              return [
+                                SliverToBoxAdapter(
+                                  child: Column(
+                                    children: [
+                                      _buildStatusUpdateButton(),
+                                      _buildJobInfo(),
+                                    ],
+                                  ),
+                                ),
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _StickyTabBarDelegate(
+                              child: Container(
+                                color: Colors.grey[100],
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
+                                    border: Border.all(color: Colors.grey.shade200, width: 1),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        offset: Offset(0, 2),
+                                        blurRadius: 8,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Consumer<FontSizeProvider>(
+                                    builder: (context, fontProvider, child) {
+                                      return TabBar(
+                                        controller: _tabController,
+                                        indicatorSize: TabBarIndicatorSize.tab,
+                                        dividerColor: Colors.transparent,
+                                        indicator: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              colors.primary,
+                                              colors.primary.withOpacity(0.8),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: colors.primary.withOpacity(0.3),
+                                              offset: Offset(0, 2),
+                                              blurRadius: 6,
+                                              spreadRadius: 0,
+                                            ),
                                           ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
                                         ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: colors.primary.withValues(alpha: 0.3),
-                                            offset: Offset(0, 2),
-                                            blurRadius: 6,
-                                            spreadRadius: 0,
+                                        labelColor: Colors.white,
+                                        unselectedLabelColor: colors.textSecondary,
+                                        labelStyle: GoogleFonts.notoSansThai(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: fontProvider.getScaledFontSize(11.0),
+                                          letterSpacing: 0.5,
+                                        ),
+                                        unselectedLabelStyle: GoogleFonts.notoSansThai(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: fontProvider.getScaledFontSize(11.0),
+                                        ),
+                                        splashFactory: NoSplash.splashFactory,
+                                        overlayColor: WidgetStateProperty.all(Colors.transparent),
+                                        tabs: [
+                                          Tab(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.route, size: 16),
+                                                  SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      'แผนการเดินทาง',
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Tab(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.attach_money, size: 16),
+                                                  SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      'ค่าใช้จ่าย',
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Tab(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.receipt_long, size: 16),
+                                                  SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      'ที่อยู่ใบเสร็จ',
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ],
-                                      ),
-                                      labelColor: Colors.white,
-                                      unselectedLabelColor: colors.textSecondary,
-                                      labelStyle: GoogleFonts.notoSansThai(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: fontProvider.getScaledFontSize(11.0),
-                                        letterSpacing: 0.5,
-                                      ),
-                                      unselectedLabelStyle: GoogleFonts.notoSansThai(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: fontProvider.getScaledFontSize(11.0),
-                                      ),
-                                      splashFactory: NoSplash.splashFactory,
-                                      overlayColor: WidgetStateProperty.all(Colors.transparent),
-                                      tabs: [
-                                        Tab(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.route, size: 16),
-                                                SizedBox(width: 4),
-                                                Flexible(
-                                                  child: Text(
-                                                    'แผนการเดินทาง',
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Tab(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.attach_money, size: 16),
-                                                SizedBox(width: 4),
-                                                Flexible(
-                                                  child: Text(
-                                                    'ค่าใช้จ่าย',
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Tab(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.receipt_long, size: 16),
-                                                SizedBox(width: 4),
-                                                Flexible(
-                                                  child: Text(
-                                                    'ที่อยู่ใบเสร็จ',
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ),
+                              ];
+                            },
+                            body: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                // Tab 1: แผนการเดินทาง
+                                SingleChildScrollView(
+                                  padding: EdgeInsets.only(bottom: 20),
+                                  child: _buildIntegratedTimeline(),
+                                ),
+                                // Tab 2: ค่าใช้จ่าย
+                                SingleChildScrollView(
+                                  padding: EdgeInsets.only(bottom: 20),
+                                  child: _buildCostInfo(),
+                                ),
+                                // Tab 3: ที่อยู่ออกใบเสร็จ
+                                SingleChildScrollView(
+                                  padding: EdgeInsets.only(bottom: 20),
+                                  child: _buildInvoiceAddress(),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ];
-                    },
-                    body: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        // Tab 1: แผนการเดินทาง
-                        SingleChildScrollView(
-                          padding: EdgeInsets.only(bottom: 20),
-                          child: _buildIntegratedTimeline(),
-                        ),
-                        // Tab 2: ค่าใช้จ่าย
-                        SingleChildScrollView(
-                          padding: EdgeInsets.only(bottom: 20),
-                          child: _buildCostInfo(),
-                        ),
-                        // Tab 3: ที่อยู่ออกใบเสร็จ
-                        SingleChildScrollView(
-                          padding: EdgeInsets.only(bottom: 20),
-                          child: _buildInvoiceAddress(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2250,7 +2377,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 offset: Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -2338,7 +2465,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       child: Icon(
                         Icons.edit,
                         size: 16,
-                        color: Colors.blue.withValues(alpha: 0.7),
+                        color: Colors.blue.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -2395,7 +2522,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 offset: Offset(0, 2),
                 blurRadius: 8,
               ),
@@ -2426,7 +2553,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: colors.success.withValues(alpha: 0.1),
+                        color: colors.success.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
@@ -2492,7 +2619,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.1),
+                          color: colors.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -2566,12 +2693,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [colors.primary.withValues(alpha: 0.1), colors.primary.withValues(alpha: 0.05)],
+                    colors: [colors.primary.withOpacity(0.1), colors.primary.withOpacity(0.05)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+                  border: Border.all(color: colors.primary.withOpacity(0.2)),
                 ),
                 child: Row(
                   children: [
@@ -2580,12 +2707,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       height: 48,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [colors.primary, colors.primary.withValues(alpha: 0.8)],
+                          colors: [colors.primary, colors.primary.withOpacity(0.8)],
                         ),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: colors.primary.withValues(alpha: 0.3),
+                            color: colors.primary.withOpacity(0.3),
                             blurRadius: 12,
                             offset: Offset(0, 4),
                           ),
@@ -2692,7 +2819,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: stepColor.withValues(alpha: 0.3),
+                    color: stepColor.withOpacity(0.3),
                     blurRadius: 8,
                     offset: Offset(0, 2),
                   ),
@@ -2720,7 +2847,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 width: 3,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: timelineColor.withValues(alpha: 0.4),
+                  color: timelineColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
@@ -2737,10 +2864,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: stepColor.withValues(alpha: 0.2)),
+              border: Border.all(color: stepColor.withOpacity(0.2)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withOpacity(0.04),
                   offset: Offset(0, 2),
                   blurRadius: 8,
                 ),
@@ -2767,7 +2894,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                         child: Container(
                           padding: EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: colors.success.withValues(alpha: 0.1),
+                            color: colors.success.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Icon(
@@ -2788,7 +2915,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: stepColor.withValues(alpha: 0.1),
+                          color: stepColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -2806,7 +2933,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: colors.warning.withValues(alpha: 0.1),
+                          color: colors.warning.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(

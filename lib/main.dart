@@ -9,6 +9,7 @@ import 'screen/dashboard/dashboard_screen.dart';
 import 'screen/push_notification/push_notification_screen.dart';
 import 'screen/job_detail/job_detail_screen.dart';
 import 'service/notification_service.dart';
+import 'service/notification_navigation_service.dart';
 import 'provider/font_size_provider.dart';
 
 void main() async {
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<FontSizeProvider>(
         builder: (context, fontProvider, child) {
           return MaterialApp(
+            navigatorKey: NotificationNavigationService.navigatorKey,
             title: 'แอปพลิเคชัน Flutter Dashboard',
             theme: ThemeData(
               primarySwatch: Colors.blue,
