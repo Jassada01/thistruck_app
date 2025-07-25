@@ -934,7 +934,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: colors.primary, width: 2),
             boxShadow: [
               BoxShadow(
@@ -1398,8 +1397,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w400,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -1933,6 +1930,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        title: Consumer<FontSizeProvider>(
+          builder: (context, fontProvider, child) {
+            return Text(
+              _tripData?['job_name'] ?? 'รายละเอียดงาน',
+              style: GoogleFonts.notoSansThai(
+                fontSize: fontProvider.getScaledFontSize(16.0),
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        ),
+        centerTitle: true,
         leading: Container(
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -1974,21 +1986,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
       ),
       body: Column(
         children: [
-          // Compact Header
+          // Compact Header Design
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
                 colors: [
                   colors.primary,
-                  colors.primary.withOpacity(0.8),
+                  colors.primary.withOpacity(0.9),
                 ],
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
               boxShadow: [
                 BoxShadow(
@@ -2000,54 +2012,175 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
             ),
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
+                    // Icon
                     Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        Icons.assignment_turned_in_rounded,
+                        Icons.local_shipping_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 18,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(width: 10),
+                    // Main content
                     Expanded(
-                      child: Consumer<FontSizeProvider>(
-                        builder: (context, fontProvider, child) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Job/Trip numbers row
+                          Row(
                             children: [
-                              Text(
+                              if (_tripData?['job_no'] != null) ...[
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Consumer<FontSizeProvider>(
+                                    builder: (context, fontProvider, child) {
+                                      return Text(
+                                        'Job: ${_tripData!['job_no']}',
+                                        style: GoogleFonts.notoSansThai(
+                                          fontSize: fontProvider.getScaledFontSize(11.0),
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                              ],
+                              if (_tripData?['trip_no'] != null || _tripData?['id'] != null) ...[
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Consumer<FontSizeProvider>(
+                                    builder: (context, fontProvider, child) {
+                                      return Text(
+                                        'Trip: ${_tripData?['trip_no'] ?? _tripData?['id']}',
+                                        style: GoogleFonts.notoSansThai(
+                                          fontSize: fontProvider.getScaledFontSize(11.0),
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                              Spacer(),
+                              // Status
+                              if (_tripData?['status'] != null)
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _tripData!['status'],
+                                    style: GoogleFonts.notoSansThai(
+                                      fontSize: 9.0,
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: 2),
+                          // Job name
+                          Consumer<FontSizeProvider>(
+                            builder: (context, fontProvider, child) {
+                              return Text(
                                 _tripData?['job_name'] ?? 'ไม่มีข้อมูลงาน',
                                 style: GoogleFonts.notoSansThai(
                                   fontSize: fontProvider.getScaledFontSize(16.0),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
+                                  height: 1.1,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                              ),
-                              if (_tripData?['customer_name'] != null) ...[
-                                SizedBox(height: 2),
-                                Text(
-                                  'ลูกค้า: ${_tripData!['customer_name']}',
-                                  style: GoogleFonts.notoSansThai(
-                                    fontSize: fontProvider.getScaledFontSize(12.0),
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontWeight: FontWeight.w400,
+                              );
+                            },
+                          ),
+                          // Customer and date in one line
+                          Consumer<FontSizeProvider>(
+                            builder: (context, fontProvider, child) {
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.business_rounded,
+                                          size: 13,
+                                          color: Colors.white.withOpacity(0.7),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            _tripData?['customer_name'] ?? 'ไม่ระบุ',
+                                            style: GoogleFonts.notoSansThai(
+                                              fontSize: fontProvider.getScaledFontSize(12.0),
+                                              color: Colors.white.withOpacity(0.8),
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          );
-                        },
+                                  if (_tripData?['jobStartDateTime'] != null) ...[
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.schedule_rounded,
+                                            size: 13,
+                                            color: Colors.white.withOpacity(0.7),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              _formatDateTime(_tripData!['jobStartDateTime']),
+                                              style: GoogleFonts.notoSansThai(
+                                                fontSize: fontProvider.getScaledFontSize(11.0),
+                                                color: Colors.white.withOpacity(0.75),
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],
