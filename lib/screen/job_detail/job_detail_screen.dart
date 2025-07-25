@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../service/api_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
@@ -120,6 +121,34 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
       return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTime;
+    }
+  }
+
+  String _formatWeight(String? weightStr) {
+    if (weightStr == null || weightStr.isEmpty) return 'ไม่ระบุ';
+    
+    try {
+      final weight = double.tryParse(weightStr) ?? 0.0;
+      if (weight == 0.0) return '-';
+      
+      final formatter = NumberFormat('#,##0.##', 'en_US');
+      return '${formatter.format(weight)} กก.';
+    } catch (e) {
+      return weightStr.isNotEmpty ? '$weightStr กก.' : 'ไม่ระบุ';
+    }
+  }
+
+  String _formatExpense(String? expenseStr) {
+    if (expenseStr == null || expenseStr.isEmpty) return '-';
+    
+    try {
+      final expense = double.tryParse(expenseStr) ?? 0.0;
+      if (expense == 0.0) return '-';
+      
+      final formatter = NumberFormat('#,##0.00', 'en_US');
+      return '${formatter.format(expense)} บาท';
+    } catch (e) {
+      return expenseStr.isNotEmpty ? '$expenseStr บาท' : '-';
     }
   }
 
@@ -1286,7 +1315,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
   Widget _buildEditableWeightRow() {
     final colors = AppThemeConfig.AppColorScheme.light();
     final containerWeight = _tripData!['containerWeight']?.toString() ?? '';
-    final displayValue = containerWeight.isNotEmpty ? '$containerWeight กก.' : 'ไม่ระบุ';
+    final displayValue = _formatWeight(containerWeight);
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
@@ -2388,7 +2417,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
   Widget _buildCostItem(String label, dynamic value, String fieldKey, {bool isTotal = false}) {
     final colors = AppThemeConfig.AppColorScheme.light();
     final amount = value?.toString() ?? '0.00';
-    final formattedAmount = double.tryParse(amount)?.toStringAsFixed(2) ?? '0.00';
+    final formattedAmount = _formatExpense(amount);
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
@@ -2421,7 +2450,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                 ],
               ),
               Text(
-                '฿$formattedAmount',
+                formattedAmount,
                 style: GoogleFonts.notoSansThai(
                   fontSize: fontProvider.getScaledFontSize(isTotal ? 12.0 : 11.0),
                   color: isTotal ? colors.success : colors.textPrimary,
