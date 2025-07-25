@@ -7,6 +7,7 @@ import '../../service/api_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'widgets/expense_list_widget.dart';
 
 class JobDetailScreen extends StatefulWidget {
   final String randomCode;
@@ -2434,7 +2435,14 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                                 // Tab 2: ค่าใช้จ่าย
                                 SingleChildScrollView(
                                   padding: EdgeInsets.only(bottom: 20),
-                                  child: _buildCostInfo(),
+                                  child: ExpenseListWidget(
+                                    tripData: _tripData,
+                                    onExpenseUpdated: () {
+                                      setState(() {
+                                        _calculateTotalExpenses();
+                                      });
+                                    },
+                                  ),
                                 ),
                                 // Tab 3: ที่อยู่ออกใบเสร็จ
                                 SingleChildScrollView(
@@ -2452,150 +2460,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildCostInfo() {
-    if (_tripData == null || _tripData!['trip_cost'] == null) {
-      return Container(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Center(
-          child: Text(
-            'ไม่มีข้อมูลค่าใช้จ่าย',
-            style: GoogleFonts.notoSansThai(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
-      );
-    }
-
-    final costData = _tripData!['trip_cost'] as Map<String, dynamic>;
-    final colors = AppThemeConfig.AppColorScheme.light();
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                offset: Offset(0, 2),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.monetization_on, color: colors.success, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'รายการค่าใช้จ่าย',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(14.0),
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              _buildCostItem('ค่าล่วงเวลา', costData['overtime_fee'], 'overtime_fee'),
-              _buildCostItem('ค่าผ่านท่า', costData['port_charge'], 'port_charge'),
-              _buildCostItem('ค่าผ่านลาน', costData['yard_charge'], 'yard_charge'),
-              _buildCostItem('ค่ารับตู้/คืนตู้', costData['container_return'], 'container_return'),
-              _buildCostItem('ค่าซ่อมตู้', costData['container_cleaning_repair'], 'container_cleaning_repair'),
-              _buildCostItem('ค่าล้างตู้', costData['container_drop_lift'], 'container_drop_lift'),
-              _buildCostItem('ค่าชอร์(SHORE)', costData['expenses_1'], 'expenses_1'),
-              // Divider(thickness: 1, color: colors.divider),
-              // _buildCostItem('รวมค่าใช้จ่าย', costData['total_expenses'], 'total_expenses', isTotal: true),
-              if (costData['remark'] != null && costData['remark'].toString().isNotEmpty) ...[
-                SizedBox(height: 12),
-                Text(
-                  'หมายเหตุ:',
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(12.0),
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  costData['remark'],
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(11.0),
-                    color: colors.textSecondary,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCostItem(String label, dynamic value, String fieldKey, {bool isTotal = false}) {
-    final colors = AppThemeConfig.AppColorScheme.light();
-    final amount = value?.toString() ?? '0.00';
-    final formattedAmount = _formatExpense(amount);
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(isTotal ? 12.0 : 11.0),
-                      color: isTotal ? colors.textPrimary : colors.textSecondary,
-                      fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-                    ),
-                  ),
-                  if (!isTotal) ...[
-                    SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => _updateCostItem(label, fieldKey, amount),
-                      child: Icon(
-                        Icons.edit,
-                        size: 16,
-                        color: Colors.blue.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              Text(
-                formattedAmount,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(isTotal ? 12.0 : 11.0),
-                  color: isTotal ? colors.success : colors.textPrimary,
-                  fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildInvoiceAddress() {
     if (_tripData == null || _tripData!['trip_cost'] == null) {
@@ -3145,166 +3009,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     }
   }
 
-  Future<void> _updateCostItem(String label, String fieldKey, String currentValue) async {
-    if (_tripData == null) return;
-
-    final TextEditingController controller = TextEditingController(
-      text: currentValue == '0.00' ? '' : currentValue,
-    );
-
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => Consumer<FontSizeProvider>(
-        builder: (context, fontProvider, child) {
-          return AlertDialog(
-            title: Text(
-              'แก้ไข$label',
-              style: GoogleFonts.notoSansThai(
-                fontSize: fontProvider.getScaledFontSize(16.0),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: label,
-                hintText: 'กรุณากรอกจำนวนเงิน',
-                border: OutlineInputBorder(),
-                prefixText: '฿ ',
-              ),
-              style: GoogleFonts.notoSansThai(
-                fontSize: fontProvider.getScaledFontSize(14.0),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'ยกเลิก',
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(14.0),
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, controller.text.trim()),
-                child: Text(
-                  'บันทึก',
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(14.0),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-
-    if (result != null) {
-      await _saveCostItem(fieldKey, result);
-    }
-  }
-
-  Future<void> _saveCostItem(String fieldKey, String newValue) async {
-    setState(() {
-      _isUpdatingContainer = true;
-    });
-
-    try {
-      // สร้าง Map ของข้อมูลที่จะอัพเดท
-      Map<String, String> updateData = {
-        fieldKey: newValue,
-      };
-
-      // สร้าง API request สำหรับอัพเดทค่าใช้จ่าย (Function 18 - สมมติ)
-      final response = await ApiService.updateTripCost(
-        tripId: _tripData!['id'].toString(),
-        costData: updateData,
-      );
-
-      if (response['success']) {
-        setState(() {
-          // อัพเดทข้อมูลใน local state
-          if (_tripData!['trip_cost'] != null) {
-            _tripData!['trip_cost'][fieldKey] = newValue;
-            
-            // คำนวณยอดรวมใหม่
-            _recalculateTotalCost();
-          }
-        });
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'อัพเดทค่าใช้จ่ายเรียบร้อยแล้ว',
-                style: GoogleFonts.notoSansThai(),
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                response['message'] ?? 'เกิดข้อผิดพลาดในการอัพเดท',
-                style: GoogleFonts.notoSansThai(),
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      print('Error updating cost item: $e');
-      
-      // ถ้ายังไม่มี API function 18 ให้แสดงข้อความว่าจะเพิ่มในอนาคต
-      if (e.toString().contains('updateTripCost')) {
-        setState(() {
-          // อัพเดท local state ก่อน (เพื่อการทดสอบ)
-          if (_tripData!['trip_cost'] != null) {
-            _tripData!['trip_cost'][fieldKey] = newValue;
-            _recalculateTotalCost();
-          }
-        });
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'อัพเดทเฉพาะหน้าจอ (ยังไม่ได้บันทึกลงฐานข้อมูล)',
-                style: GoogleFonts.notoSansThai(),
-              ),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'เกิดข้อผิดพลาดในการเชื่อมต่อ',
-                style: GoogleFonts.notoSansThai(),
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-
-    setState(() {
-      _isUpdatingContainer = false;
-    });
-  }
-
-  void _recalculateTotalCost() {
+  void _calculateTotalExpenses() {
     if (_tripData?['trip_cost'] == null) return;
 
     final costData = _tripData!['trip_cost'] as Map<String, dynamic>;
