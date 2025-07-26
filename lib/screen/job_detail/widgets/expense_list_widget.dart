@@ -184,7 +184,13 @@ class ExpenseListWidget extends StatelessWidget {
   }
 
   Future<void> _updateCostItem(BuildContext context, String label, String fieldKey, String currentValue) async {
-    String newValue = currentValue;
+    // ถ้าค่าเดิมเป็น 0 หรือ 0.00 ให้แสดงช่องว่าง
+    String displayValue = '';
+    if (currentValue != '0' && currentValue != '0.00' && currentValue.isNotEmpty) {
+      displayValue = currentValue;
+    }
+    
+    String newValue = displayValue;
     
     final result = await showDialog<String>(
       context: context,
@@ -195,7 +201,7 @@ class ExpenseListWidget extends StatelessWidget {
             style: GoogleFonts.notoSansThai(fontWeight: FontWeight.bold),
           ),
           content: TextField(
-            controller: TextEditingController(text: currentValue),
+            controller: TextEditingController(text: displayValue),
             keyboardType: TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: 'จำนวนเงิน (บาท)',
@@ -226,7 +232,7 @@ class ExpenseListWidget extends StatelessWidget {
       },
     );
 
-    if (result != null && result != currentValue) {
+    if (result != null && result != currentValue && context.mounted) {
       await _performCostUpdate(context, fieldKey, result);
     }
   }
@@ -237,9 +243,11 @@ class ExpenseListWidget extends StatelessWidget {
 
       final tripId = tripData!['id']?.toString();
       if (tripId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ไม่พบ Trip ID')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('ไม่พบ Trip ID')),
+          );
+        }
         return;
       }
 
@@ -248,10 +256,16 @@ class ExpenseListWidget extends StatelessWidget {
         fieldKey: newValue,
       };
 
+      print('📤 Updating cost for trip $tripId, field: $fieldKey, value: $newValue');
+
       final response = await ApiService.updateTripCost(
         tripId: tripId,
         costData: updateData,
       );
+
+      print('📦 Update response: $response');
+
+      if (!context.mounted) return;
 
       if (response['success'] == true) {
         // อัพเดทข้อมูลใน tripData
@@ -285,22 +299,24 @@ class ExpenseListWidget extends StatelessWidget {
         );
       }
     } catch (e) {
-      print('Error updating cost item: $e');
+      print('❌ Error updating cost item: $e');
       
       // อัพเดทข้อมูลใน memory ก่อน (optimistic update)
       if (tripData!['trip_cost'] != null) {
         tripData!['trip_cost'][fieldKey] = newValue;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'อัพเดทเรียบร้อยแล้ว (แต่อาจไม่ซิงค์กับเซิร์ฟเวอร์)',
-            style: GoogleFonts.notoSansThai(),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'อัพเดทเรียบร้อยแล้ว (แต่อาจไม่ซิงค์กับเซิร์ฟเวอร์)',
+              style: GoogleFonts.notoSansThai(),
+            ),
+            backgroundColor: Colors.orange,
           ),
-          backgroundColor: Colors.orange,
-        ),
-      );
+        );
+      }
 
       // เรียก callback เพื่อ refresh UI
       if (onExpenseUpdated != null) {
