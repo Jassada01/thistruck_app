@@ -869,4 +869,212 @@ class ApiService {
       }
     }
   }
+
+  // Save Additional Expense (Function 19)
+  static Future<Map<String, dynamic>> saveAdditionalExpense({
+    required String tripId,
+    required String expenseType,
+    required String amount,
+    String? remark,
+  }) async {
+    try {
+      // Prepare request data for f=19 (createAdditionalExpense)
+      Map<String, String> requestData = {
+        'f': '19', // Function number for createAdditionalExpense
+        'trip_id': tripId,
+        'expense_type': expenseType,
+        'amount': amount,
+      };
+
+      if (remark != null && remark.isNotEmpty) {
+        requestData['remark'] = remark;
+      }
+
+      print('📤 Saving additional expense for trip $tripId...');
+      print('📤 Expense type: $expenseType, Amount: $amount');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Additional expense save response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Additional expense save result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'บันทึกค่าใช้จ่ายเพิ่มเติมเรียบร้อยแล้ว',
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการบันทึกค่าใช้จ่าย',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error saving additional expense: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {'success': false, 'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ'};
+      }
+    }
+  }
+
+  // Get Additional Expenses by Trip ID (Function 20)
+  static Future<Map<String, dynamic>> getAdditionalExpensesByTripId({
+    required String tripId,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '20', // Function number for getAdditionalExpensesByTripId
+        'trip_id': tripId,
+      };
+
+      print('📤 Getting additional expenses for trip $tripId...');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Get additional expenses response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Get additional expenses result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'expenses': result['expenses'] ?? [],
+            'total_count': result['total_count'] ?? 0,
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการดึงข้อมูลค่าใช้จ่าย',
+            'expenses': [],
+            'total_count': 0,
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+          'expenses': [],
+          'total_count': 0,
+        };
+      }
+    } catch (e) {
+      print('❌ Error getting additional expenses: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+          'expenses': [],
+          'total_count': 0,
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+          'expenses': [],
+          'total_count': 0,
+        };
+      }
+    }
+  }
+
+  // Delete Additional Expense (Function 21)
+  static Future<Map<String, dynamic>> deleteAdditionalExpense({
+    required String expenseId,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '21', // Function number for deleteAdditionalExpense
+        'expense_id': expenseId,
+      };
+
+      print('📤 Deleting additional expense $expenseId...');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Delete additional expense response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Delete additional expense result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'ลบค่าใช้จ่ายเรียบร้อยแล้ว',
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการลบค่าใช้จ่าย',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error deleting additional expense: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {'success': false, 'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ'};
+      }
+    }
+  }
 }
