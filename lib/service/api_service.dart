@@ -5,8 +5,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'notification_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.38/thistruck/function/mobile';
-  //static const String baseUrl = 'https://thistruck.app/function/mobile';
+  //static const String baseUrl = 'http://192.168.1.38/thistruck/function/mobile';
+  static const String baseUrl = 'https://thistruck.app/function/mobile';
   static const String endpoint = '$baseUrl/mainFunction.php';
 
   // Check network connectivity

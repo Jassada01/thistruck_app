@@ -25,8 +25,7 @@ class AppTheme {
         return AppColorScheme.dark();
       case ThemeMode.light:
       case ThemeMode.system:
-      default:
-        return AppColorScheme.light();
+      return AppColorScheme.light();
     }
   }
   

@@ -329,7 +329,7 @@ class JobCardItem extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'วันเริ่มงาน',
+                                        'วันเวลาเริ่มงาน',
                                         style: GoogleFonts.notoSansThai(
                                           fontSize: fontProvider.getScaledFontSize(11.0),
                                           color: colors.textSecondary,
@@ -340,7 +340,7 @@ class JobCardItem extends StatelessWidget {
                                         _formatDateTime(trip['jobStartDateTime']),
                                         style: GoogleFonts.notoSansThai(
                                           fontSize: fontProvider.getScaledFontSize(12.0),
-                                          color: colors.textPrimary,
+                                          color: Colors.red,
                                           fontWeight: FontWeight.w600,
                                         ),
                                         maxLines: 1,
@@ -356,12 +356,211 @@ class JobCardItem extends StatelessWidget {
                       ),
                     ],
                   ),
+                  
+                  // Additional Job Information (แสดงเฉพาะเมื่อมีข้อมูล)
+                  ..._buildAdditionalInfo(context, fontProvider, colors),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  List<Widget> _buildAdditionalInfo(BuildContext context, FontSizeProvider fontProvider, dynamic colors) {
+    List<Widget> additionalWidgets = [];
+    
+    // Customer Job Info Section
+    List<Widget> customerJobInfo = [];
+    
+    if (_hasValue(trip['customer_job_no'])) {
+      customerJobInfo.add(_buildInfoItem(
+        'เลขที่งานลูกค้า',
+        trip['customer_job_no'],
+        Icons.assignment_outlined,
+        Color(0xFF2196F3), // Blue
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['customer_po_no'])) {
+      customerJobInfo.add(_buildInfoItem(
+        'เลข PO',
+        trip['customer_po_no'], 
+        Icons.receipt_long_outlined,
+        colors.warning,
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['customer_invoice_no'])) {
+      customerJobInfo.add(_buildInfoItem(
+        'เลขที่ Invoice',
+        trip['customer_invoice_no'],
+        Icons.description_outlined,
+        colors.success,
+        fontProvider,
+      ));
+    }
+    
+    // Job Details Section
+    List<Widget> jobDetails = [];
+    
+    if (_hasValue(trip['goods'])) {
+      jobDetails.add(_buildInfoItem(
+        'สินค้า',
+        trip['goods'],
+        Icons.inventory_2_outlined,
+        colors.primary,
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['booking'])) {
+      jobDetails.add(_buildInfoItem(
+        'Booking',
+        trip['booking'],
+        Icons.book_outlined,
+        Color(0xFF795548), // Brown
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['bill_of_lading'])) {
+      jobDetails.add(_buildInfoItem(
+        'Bill of Lading',
+        trip['bill_of_lading'],
+        Icons.article_outlined,
+        Color(0xFF607D8B), // Blue Grey
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['agent'])) {
+      jobDetails.add(_buildInfoItem(
+        'Agent',
+        trip['agent'],
+        Icons.person_outline,
+        Color(0xFF9C27B0), // Purple
+        fontProvider,
+      ));
+    }
+    
+    if (_hasValue(trip['quantity'])) {
+      jobDetails.add(_buildInfoItem(
+        'จำนวน',
+        trip['quantity'],
+        Icons.format_list_numbered_outlined,
+        Color(0xFFFF5722), // Deep Orange
+        fontProvider,
+      ));
+    }
+    
+    // เพิ่ม spacing และ sections เฉพาะเมื่อมีข้อมูล
+    if (customerJobInfo.isNotEmpty || jobDetails.isNotEmpty) {
+      additionalWidgets.add(SizedBox(height: 16));
+      
+      // Customer Job Information
+      if (customerJobInfo.isNotEmpty) {
+        additionalWidgets.add(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ข้อมูลงานลูกค้า',
+                style: GoogleFonts.notoSansThai(
+                  fontSize: fontProvider.getScaledFontSize(12.0),
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 8),
+              ...customerJobInfo,
+              if (jobDetails.isNotEmpty) SizedBox(height: 12),
+            ],
+          ),
+        );
+      }
+      
+      // Job Details Information  
+      if (jobDetails.isNotEmpty) {
+        additionalWidgets.add(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (customerJobInfo.isEmpty) ...[
+                Text(
+                  'รายละเอียดงาน',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(12.0),
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+              ],
+              ...jobDetails,
+            ],
+          ),
+        );
+      }
+    }
+    
+    return additionalWidgets;
+  }
+
+  bool _hasValue(dynamic value) {
+    return value != null && value.toString().trim().isNotEmpty && value.toString() != 'null';
+  }
+
+  Widget _buildInfoItem(String label, dynamic value, IconData icon, Color color, FontSizeProvider fontProvider) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 14,
+              color: color,
+            ),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(11.0),
+                    color: AppThemeConfig.AppColorScheme.light().textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  value.toString(),
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(13.0),
+                    color: AppThemeConfig.AppColorScheme.light().textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -391,7 +590,8 @@ class JobCardItem extends StatelessWidget {
 
     try {
       final date = DateTime.parse(dateTime);
-      return '${date.day}/${date.month}/${date.year}';
+      final months = ['มค.', 'กพ.', 'มีค.', 'เมย.', 'พค.', 'มิย.', 'กค.', 'สค.', 'กย.', 'ตค.', 'พย.', 'ธค.'];
+      return '${date.day} ${months[date.month - 1]} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTime;
     }

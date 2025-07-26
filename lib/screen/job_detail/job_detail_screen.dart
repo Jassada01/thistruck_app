@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../service/api_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'widgets/expense_list_widget.dart';
 import 'widgets/travel_plan_widget.dart';
 
@@ -120,7 +119,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     
     try {
       final date = DateTime.parse(dateTime);
-      return '${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      final months = ['มค.', 'กพ.', 'มีค.', 'เมย.', 'พค.', 'มิย.', 'กค.', 'สค.', 'กย.', 'ตค.', 'พย.', 'ธค.'];
+      return '${date.day} ${months[date.month - 1]} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTime;
     }
@@ -140,19 +140,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     }
   }
 
-  String _formatExpense(String? expenseStr) {
-    if (expenseStr == null || expenseStr.isEmpty) return '-';
-    
-    try {
-      final expense = double.tryParse(expenseStr) ?? 0.0;
-      if (expense == 0.0) return '-';
-      
-      final formatter = NumberFormat('#,##0.00', 'en_US');
-      return '${formatter.format(expense)} บาท';
-    } catch (e) {
-      return expenseStr.isNotEmpty ? '$expenseStr บาท' : '-';
-    }
-  }
 
   Color _getStatusColor(String? status) {
     final colors = AppThemeConfig.AppColorScheme.light();
@@ -501,124 +488,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
   }
 
 
-  Future<void> _openMap(String? mapUrl) async {
-    if (mapUrl == null || mapUrl.isEmpty) {
-      print('⚠️ Map URL is empty or null');
-      return;
-    }
-    
-    try {
-      print('🗺️ Opening map URL: $mapUrl');
-      
-      Uri? url;
-      
-      // ตรวจสอบประเภทของ URL และจัดการแต่ละประเภท
-      if (mapUrl.startsWith('http://') || mapUrl.startsWith('https://')) {
-        // URL ปกติ (Google Maps, etc.)
-        url = Uri.parse(mapUrl);
-      } else if (mapUrl.contains('lat') && mapUrl.contains('lng') || mapUrl.contains('latitude') && mapUrl.contains('longitude')) {
-        // ถ้าเป็นพิกัด ให้เปิดด้วย Google Maps
-        RegExp latRegex = RegExp(r'lat[itude]*[=:]?\s*([+-]?[0-9]*\.?[0-9]+)');
-        RegExp lngRegex = RegExp(r'lng|lon[gitude]*[=:]?\s*([+-]?[0-9]*\.?[0-9]+)');
-        
-        String? lat = latRegex.firstMatch(mapUrl)?.group(1);
-        String? lng = lngRegex.firstMatch(mapUrl)?.group(1);
-        
-        if (lat != null && lng != null) {
-          // ลองใช้ geo scheme ก่อน (รองรับ Google Maps และ apps อื่นๆ)
-          String geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
-          url = Uri.parse(geoUrl);
-          
-          if (!(await canLaunchUrl(url))) {
-            // ถ้า geo scheme ไม่ได้ ลอง Google Maps navigation
-            String googleMapsUrl = 'google.navigation:q=$lat,$lng';
-            url = Uri.parse(googleMapsUrl);
-            
-            if (!(await canLaunchUrl(url))) {
-              // สุดท้ายใช้ web version
-              googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-              url = Uri.parse(googleMapsUrl);
-            }
-          }
-        }
-      } else if (mapUrl.contains(',')) {
-        // ถ้าเป็นรูปแบบ lat,lng
-        List<String> coords = mapUrl.split(',');
-        if (coords.length >= 2) {
-          String lat = coords[0].trim();
-          String lng = coords[1].trim();
-          
-          // ตรวจสอบว่าเป็นตัวเลขจริงๆ
-          if (double.tryParse(lat) != null && double.tryParse(lng) != null) {
-            // ลองใช้ geo scheme ก่อน (รองรับ Google Maps และ apps อื่นๆ)
-            String geoUrl = 'geo:$lat,$lng?q=$lat,$lng';
-            url = Uri.parse(geoUrl);
-            
-            if (!(await canLaunchUrl(url))) {
-              // ถ้า geo scheme ไม่ได้ ลอง Google Maps navigation
-              String googleMapsUrl = 'google.navigation:q=$lat,$lng';
-              url = Uri.parse(googleMapsUrl);
-              
-              if (!(await canLaunchUrl(url))) {
-                // สุดท้ายใช้ web version
-                googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
-                url = Uri.parse(googleMapsUrl);
-              }
-            }
-          }
-        }
-      }
-      
-      if (url != null) {
-        if (await canLaunchUrl(url)) {
-          await launchUrl(
-            url,
-            mode: LaunchMode.externalApplication,
-          );
-          print('✅ Map URL launched successfully');
-        } else {
-          // ถ้าไม่สามารถเปิดได้ ลองเปิดผ่าน browser
-          final fallbackUrl = Uri.parse(mapUrl.startsWith('http') ? mapUrl : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(mapUrl)}');
-          if (await canLaunchUrl(fallbackUrl)) {
-            await launchUrl(
-              fallbackUrl,
-              mode: LaunchMode.inAppBrowserView,
-            );
-            print('✅ Map opened in browser');
-          } else {
-            throw Exception('Cannot open map URL');
-          }
-        }
-      } else {
-        // ถ้าไม่สามารถ parse URL ได้ ให้แสดงข้อผิดพลาด
-        _showMapError('ไม่สามารถเปิดแผนที่ได้: รูปแบบ URL ไม่ถูกต้อง');
-      }
-      
-    } catch (e) {
-      print('⚠️ Error opening map: $e');
-      _showMapError('ไม่สามารถเปิดแผนที่ได้: ${e.toString()}');
-    }
-  }
-  
-  void _showMapError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: GoogleFonts.notoSansThai(),
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
-    }
-  }
 
   Future<void> _updateContainerID() async {
     if (_tripData == null) return;
@@ -926,114 +795,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     });
   }
 
-  Widget _buildHeader() {
-    final colors = AppThemeConfig.AppColorScheme.light();
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.all(16),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: colors.primary, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: colors.primary.withOpacity(0.1),
-                offset: Offset(0, 3),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.assignment_outlined,
-                  color: colors.primary,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            _tripData?['job_no'] ?? '-',
-                            style: GoogleFonts.notoSansThai(
-                              fontSize: fontProvider.getScaledFontSize(16.0),
-                              color: colors.textPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            _tripData?['tripNo'] ?? '-',
-                            style: GoogleFonts.notoSansThai(
-                              fontSize: fontProvider.getScaledFontSize(11.0),
-                              color: colors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_tripData != null && _tripData!['job_name'] != null) ...[
-                      SizedBox(height: 4),
-                      Text(
-                        _tripData!['job_name'],
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(12.0),
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (_tripData != null)
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(_tripData!['status']),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _tripData!['status'] ?? 'ไม่ระบุ',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(10.0),
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildStatusUpdateButton() {
     if (!_canUpdateStatus()) return SizedBox.shrink();
@@ -1136,7 +897,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
                       _formatDateTime(_tripData!['jobStartDateTime']),
                       style: GoogleFonts.notoSansThai(
                         fontSize: fontProvider.getScaledFontSize(10.0),
-                        color: colors.primary,
+                        color: Colors.red,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1161,6 +922,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
               ),
               SizedBox(height: 8),
               _buildEditableWeightRow(),
+              // Additional job information
+              SizedBox(height: 8),
+              _buildAdditionalJobInfo(),
               // Job remark if exists
               if (_tripData!['job_remark'] != null && _tripData!['job_remark'].toString().isNotEmpty) ...[
                 SizedBox(height: 8),
@@ -1407,20 +1171,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     );
   }
 
-  Widget _buildBasicJobInfo() {
-    return Column(
-      children: [
-        // Row 1: ลูกค้า และ ผู้ว่าจ้าง
-        Row(
-          children: [
-            Expanded(child: _buildCompactInfoRow('ลูกค้า', _tripData!['customer_name'])),
-            SizedBox(width: 12),
-            Expanded(child: _buildCompactInfoRow('ผู้ว่าจ้าง', _tripData!['client_name'])),
-          ],
-        ),
-      ],
-    );
-  }
 
   Widget _buildAdditionalJobInfo() {
     List<Widget> additionalRows = [];
@@ -1481,230 +1231,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
   }
 
 
-  Widget _buildLocations() {
-    if (_tripData == null || _tripData!['trip_locations'] == null) return SizedBox.shrink();
-    
-    final locations = _tripData!['trip_locations'] as List;
-    final colors = AppThemeConfig.AppColorScheme.light();
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                offset: Offset(0, 2),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.location_on, color: colors.success, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'จุดหมาย',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(14.0),
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  Spacer(),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${locations.length} จุด',
-                      style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(10.0),
-                        color: colors.success,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              ...locations.asMap().entries.map((entry) {
-                final index = entry.key;
-                final location = entry.value;
-                return _buildCompactLocationCard(location, index + 1);
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCompactLocationCard(Map<String, dynamic> location, int order) {
-    final colors = AppThemeConfig.AppColorScheme.light();
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 8),
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    order.toString(),
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(11.0),
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      location['location_name'] ?? 'ไม่ระบุสถานที่',
-                      style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(12.0),
-                        fontWeight: FontWeight.bold,
-                        color: colors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (location['job_characteristic'] != null) ...[
-                      SizedBox(height: 2),
-                      Text(
-                        location['job_characteristic'],
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(10.0),
-                          color: colors.warning,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (location['map_url'] != null && location['map_url'].toString().isNotEmpty)
-                IconButton(
-                  onPressed: () => _openMap(location['map_url']),
-                  icon: Icon(Icons.map_outlined, color: colors.success, size: 16),
-                  constraints: BoxConstraints(minWidth: 32, minHeight: 32),
-                  padding: EdgeInsets.all(4),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
 
-  Widget _buildActionLogs() {
-    if (_tripData == null || _tripData!['action_logs'] == null) return SizedBox.shrink();
-    
-    final logs = _tripData!['action_logs'] as List;
-    final colors = AppThemeConfig.AppColorScheme.light();
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                offset: Offset(0, 2),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.timeline, color: colors.warning, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'ลำดับการทำงาน',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(14.0),
-                      fontWeight: FontWeight.bold,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  Spacer(),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colors.warning.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${logs.length} ขั้นตอน',
-                      style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(10.0),
-                        color: colors.warning,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              // เรียงลำดับตาม id
-              ...((){
-                final sortedLogs = List.from(logs)..sort((a, b) {
-                  // เรียงตาม id
-                  return (a['id'] ?? 0).compareTo(b['id'] ?? 0);
-                });
-                
-                return sortedLogs.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final log = entry.value;
-                  return _buildCompactLogItem(log, index + 1);
-                });
-              })(),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
 
   Map<String, dynamic>? _getLocationByPlanOrder(int? planOrder) {
     if (planOrder == null || _tripData == null || _tripData!['trip_locations'] == null) {
@@ -1722,29 +1251,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     return null;
   }
 
-  // สร้างข้อความแสดงผล timeline ตาม minor_order
-  String _getTimelineText(Map<String, dynamic> log, Map<String, dynamic>? location) {
-    final stepDesc = log['step_desc'] ?? 'ไม่ระบุขั้นตอน';
-    final locationName = location?['location_name'] ?? '';
-    final minorOrder = log['minor_order']?.toString() ?? '';
-    
-    if (locationName.isNotEmpty) {
-      switch (minorOrder) {
-        case "1":
-          return 'ถึงที่ $stepDesc ที่ $locationName';
-        case "3":
-          return 'เริ่ม $stepDesc';
-        case "7":
-          return 'เสร็จแล้ว $stepDesc';
-        case "9":
-          return 'ออกจากที่ $stepDesc';
-        default:
-          return '$stepDesc - $locationName';
-      }
-    } else {
-      return stepDesc;
-    }
-  }
 
   // สร้างชื่อปุ่มตาม minor_order
   String _getButtonName(Map<String, dynamic>? currentAction, Map<String, dynamic>? location) {
@@ -1773,154 +1279,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> with TickerProviderSt
     return 'อัพเดทสถานะ';
   }
 
-  Widget _buildCompactLogItem(Map<String, dynamic> log, int order) {
-    final colors = AppThemeConfig.AppColorScheme.light();
-    final planOrder = log['plan_order'];
-    final location = _getLocationByPlanOrder(planOrder);
-    
-    // สร้างข้อความแสดงผลตาม minor_order
-    String displayText = _getTimelineText(log, location);
-    
-    // กำหนดสีตามสถานะ complete_flag
-    Color itemColor = colors.warning;
-    Color bgColor = Colors.grey[50]!;
-    Color borderColor = Colors.grey.shade200;
-    
-    if (log['complete_flag'] == 1) {
-      // ขั้นตอนที่เสร็จแล้ว
-      itemColor = colors.success;
-      bgColor = colors.success.withOpacity(0.05);
-      borderColor = colors.success.withOpacity(0.2);
-    } else if (log['complete_flag'] == null) {
-      // ขั้นตอนปัจจุบัน
-      itemColor = colors.primary;
-      bgColor = colors.primary.withOpacity(0.05);
-      borderColor = colors.primary.withOpacity(0.2);
-    }
-    
-    return Consumer<FontSizeProvider>(
-      builder: (context, fontProvider, child) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 8),
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: borderColor, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: itemColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: itemColor.withOpacity(0.3),
-                      offset: Offset(0, 2),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: log['complete_flag'] == 1
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
-                        )
-                      : Text(
-                          order.toString(),
-                          style: GoogleFonts.notoSansThai(
-                            fontSize: fontProvider.getScaledFontSize(11.0),
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      displayText,
-                      style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(12.0),
-                        fontWeight: FontWeight.bold,
-                        color: colors.textPrimary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (log['stage'] != null) ...[
-                      SizedBox(height: 2),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: itemColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          log['stage'],
-                          style: GoogleFonts.notoSansThai(
-                            fontSize: fontProvider.getScaledFontSize(9.0),
-                            color: itemColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (location != null && location['job_characteristic'] != null) ...[
-                      SizedBox(height: 4),
-                      Text(
-                        '📍 ${location['job_characteristic']}',
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(9.0),
-                          color: colors.success,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (log['complete_flag'] == 1 && log['timestamp'] != null) ...[
-                      SizedBox(height: 2),
-                      Text(
-                        'เสร็จเมื่อ: ${_formatDateTime(log['timestamp'])}',
-                        style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(8.0),
-                          color: colors.textSecondary,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (location != null && location['map_url'] != null && location['map_url'].toString().isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: IconButton(
-                    onPressed: () => _openMap(location['map_url']),
-                    icon: Icon(
-                      Icons.map_outlined,
-                      color: itemColor,
-                      size: 18,
-                    ),
-                    constraints: BoxConstraints(minWidth: 32, minHeight: 32),
-                    padding: EdgeInsets.all(4),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
