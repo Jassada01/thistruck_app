@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen>
   // Colors (Blue/White theme)
   final Color _primaryColor = Color(0xFF2196F3);
   final Color _primaryVariant = Color(0xFF1976D2);
-  final Color _backgroundColor = Color(0xFFFAFAFA);
+  // final Color _backgroundColor = Color(0xFFFAFAFA);
   final Color _surfaceColor = Colors.white;
   final Color _errorColor = Color(0xFFE53E3E);
   final Color _textPrimary = Color(0xFF1A1A1A);
