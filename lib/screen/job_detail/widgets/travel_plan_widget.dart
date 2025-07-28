@@ -27,7 +27,6 @@ class TravelPlanWidget extends StatelessWidget {
   Widget _buildIntegratedTimeline() {
     if (tripData == null) return SizedBox.shrink();
     
-    final locations = tripData!['trip_locations'] as List? ?? [];
     final logs = tripData!['action_logs'] as List? ?? [];
     final colors = AppThemeConfig.AppColorScheme.light();
     

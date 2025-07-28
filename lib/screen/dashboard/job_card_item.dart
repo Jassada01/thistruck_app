@@ -53,9 +53,10 @@ class JobCardItem extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Status และข้อมูลพื้นฐาน
                   Row(
@@ -141,16 +142,24 @@ class JobCardItem extends StatelessWidget {
                   SizedBox(height: 20),
                   
                   // Job Name - Prominent (Bangchak style)
-                  Text(
-                    trip['job_name'] ?? 'ไม่ระบุชื่องาน',
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(18.0),
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      height: 1.4,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Builder(
+                    builder: (context) {
+                      final jobName = trip['job_name'] ?? 'ไม่ระบุชื่องาน';
+                      return Tooltip(
+                        message: jobName,
+                        child: Text(
+                          jobName,
+                          style: GoogleFonts.notoSansThai(
+                            fontSize: fontProvider.getScaledFontSize(18.0),
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    },
                   ),
                   
                   // Container Number - if available
@@ -242,15 +251,23 @@ class JobCardItem extends StatelessWidget {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                Text(
-                                  trip['customer_name'] ?? 'ไม่ระบุ',
-                                  style: GoogleFonts.notoSansThai(
-                                    fontSize: fontProvider.getScaledFontSize(14.0),
-                                    color: colors.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                Builder(
+                                  builder: (context) {
+                                    final customerName = trip['customer_name'] ?? 'ไม่ระบุ';
+                                    return Tooltip(
+                                      message: customerName,
+                                      child: Text(
+                                        customerName,
+                                        style: GoogleFonts.notoSansThai(
+                                          fontSize: fontProvider.getScaledFontSize(14.0),
+                                          color: colors.textPrimary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -464,21 +481,25 @@ class JobCardItem extends StatelessWidget {
       // Customer Job Information
       if (customerJobInfo.isNotEmpty) {
         additionalWidgets.add(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'ข้อมูลงานลูกค้า',
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(12.0),
-                  color: colors.textSecondary,
-                  fontWeight: FontWeight.w600,
+          Container(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'ข้อมูลงานลูกค้า',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(11.0),
+                    color: colors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              ...customerJobInfo,
-              if (jobDetails.isNotEmpty) SizedBox(height: 12),
-            ],
+                SizedBox(height: 6),
+                ...customerJobInfo,
+                if (jobDetails.isNotEmpty) SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       }
@@ -486,22 +507,26 @@ class JobCardItem extends StatelessWidget {
       // Job Details Information  
       if (jobDetails.isNotEmpty) {
         additionalWidgets.add(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (customerJobInfo.isEmpty) ...[
-                Text(
-                  'รายละเอียดงาน',
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(12.0),
-                    color: colors.textSecondary,
-                    fontWeight: FontWeight.w600,
+          Container(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (customerJobInfo.isEmpty) ...[
+                  Text(
+                    'รายละเอียดงาน',
+                    style: GoogleFonts.notoSansThai(
+                      fontSize: fontProvider.getScaledFontSize(11.0),
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(height: 8),
+                  SizedBox(height: 6),
+                ],
+                ...jobDetails,
               ],
-              ...jobDetails,
-            ],
+            ),
           ),
         );
       }
@@ -515,24 +540,25 @@ class JobCardItem extends StatelessWidget {
   }
 
   Widget _buildInfoItem(String label, dynamic value, IconData icon, Color color, FontSizeProvider fontProvider) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(6),
+            padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(
               icon,
-              size: 14,
+              size: 12,
               color: color,
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -540,21 +566,26 @@ class JobCardItem extends StatelessWidget {
                 Text(
                   label,
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(11.0),
+                    fontSize: fontProvider.getScaledFontSize(10.0),
                     color: AppThemeConfig.AppColorScheme.light().textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 2),
-                Text(
-                  value.toString(),
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(13.0),
-                    color: AppThemeConfig.AppColorScheme.light().textPrimary,
-                    fontWeight: FontWeight.w600,
+                Tooltip(
+                  message: value.toString(),
+                  child: Text(
+                    value.toString(),
+                    style: GoogleFonts.notoSansThai(
+                      fontSize: fontProvider.getScaledFontSize(11.0),
+                      color: AppThemeConfig.AppColorScheme.light().textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
