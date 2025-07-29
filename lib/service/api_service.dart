@@ -67,6 +67,25 @@ class ApiService {
     return deviceData;
   }
 
+  // Get device ID only
+  static Future<String?> getDeviceId() async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        return androidInfo.id;
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+        return iosInfo.identifierForVendor ?? 'unknown_ios_device';
+      }
+    } catch (e) {
+      print('Error getting device ID: $e');
+      return 'unknown_device_${DateTime.now().millisecondsSinceEpoch}';
+    }
+    return null;
+  }
+
   // Login with passcode and send device info + FCM token
   static Future<Map<String, dynamic>> loginWithPasscode(String passcode) async {
     try {
@@ -1074,6 +1093,150 @@ class ApiService {
         };
       } else {
         return {'success': false, 'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ'};
+      }
+    }
+  }
+
+  // Check Device and Update Last Active (Function 22)
+  static Future<Map<String, dynamic>> checkDeviceAndUpdateActive(String deviceId) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '22', // Function number for checkDeviceAndUpdateActive
+        'device_id': deviceId,
+      };
+
+      print('📤 Checking device and updating last active: $deviceId');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Check device response status: ${response.statusCode}');
+      print('📥 Check device response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Check device result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'Device found and updated',
+            'device_data': result['device_data'],
+            'action': result['action'] ?? 'continue_app',
+          };
+        } else if (result['status'] == 'device_not_found' || 
+                   result['status'] == 'user_inactive' || 
+                   result['status'] == 'passcode_expired') {
+          return {
+            'success': false,
+            'status': result['status'],
+            'message': result['message'] ?? 'Device validation failed',
+            'action': result['action'] ?? 'redirect_to_passcode_login',
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการตรวจสอบอุปกรณ์',
+            'action': 'redirect_to_passcode_login',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+          'action': 'redirect_to_passcode_login',
+        };
+      }
+    } catch (e) {
+      print('❌ Error checking device: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+          'action': 'show_error',
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+          'action': 'show_error',
+        };
+      }
+    }
+  }
+
+  // Logout and Remove Device (Function 23)
+  static Future<Map<String, dynamic>> logoutAndRemoveDevice(String deviceId) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '23', // Function number for logoutAndRemoveDevice
+        'device_id': deviceId,
+      };
+
+      print('📤 Logging out and removing device: $deviceId');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Logout response status: ${response.statusCode}');
+      print('📥 Logout response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Logout result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'Logout successful',
+            'removed_devices': result['removed_devices'] ?? 0,
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการออกจากระบบ',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error during logout: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+        };
       }
     }
   }

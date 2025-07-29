@@ -176,26 +176,32 @@ class _SplashScreenState extends State<SplashScreen>
       // Step 5: Final setup
       await _updateProgress('เกือบเสร็จแล้ว...', 1.0);
 
-      // *** เพิ่มส่วนนี้: Update last active หาก user login แล้ว ***
+      // *** เพิ่มส่วนนี้: Check device และ update last active หาก user login แล้ว ***
       if (hasProfile) {
         try {
-          final profile = await LocalStorage.getProfile();
-          if (profile != null && profile['id'] != null) {
-            // ดึง device ID และ FCM token
-            String? deviceId = await _getDeviceId();
-            String? fcmToken = await NotificationService().getDeviceToken();
-
-            if (deviceId != null && fcmToken != null) {
-              await ApiService.updateLastActive(
-                profile['id'],
-                deviceId,
-                fcmToken,
-              );
-              print('✅ Last active updated on app start with FCM token');
+          String? deviceId = await _getDeviceId();
+          
+          if (deviceId != null) {
+            final checkResult = await ApiService.checkDeviceAndUpdateActive(deviceId);
+            
+            if (checkResult['success'] == true) {
+              print('✅ Device validated and last active updated');
+            } else {
+              // Device ไม่พบหรือ user inactive - ลบ profile และไปหน้า login
+              if (checkResult['action'] == 'redirect_to_passcode_login') {
+                await LocalStorage.deleteProfile();
+                print('⚠️ Device validation failed: ${checkResult['message']}');
+                
+                // Navigate to login instead of dashboard
+                if (mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                  return;
+                }
+              }
             }
           }
         } catch (e) {
-          print('⚠️ Failed to update last active: $e');
+          print('⚠️ Failed to check device: $e');
           // ไม่ให้ error นี้กระทบต่อการทำงานของ app
         }
       }

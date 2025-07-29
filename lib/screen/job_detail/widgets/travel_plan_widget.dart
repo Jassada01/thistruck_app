@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../theme/app_theme.dart' as AppThemeConfig;
 import '../../../provider/font_size_provider.dart';
+import 'trip_timeline_widget.dart';
 
 class TravelPlanWidget extends StatelessWidget {
   final Map<String, dynamic>? tripData;
@@ -18,9 +19,18 @@ class TravelPlanWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (tripData == null) return SizedBox.shrink();
     
+    final tripLocations = tripData!['trip_locations'] as List? ?? [];
+    
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: 20),
-      child: _buildIntegratedTimeline(),
+      child: Column(
+        children: [
+          // Timeline widget at the top
+          TripTimelineWidget(tripLocations: tripLocations),
+          // Existing integrated timeline below
+          _buildIntegratedTimeline(),
+        ],
+      ),
     );
   }
 
