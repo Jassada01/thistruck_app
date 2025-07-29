@@ -8,7 +8,6 @@ import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
 import 'widgets/expense_list_widget.dart';
 import 'widgets/travel_plan_widget.dart';
-import 'widgets/attached_files_widget.dart';
 
 class JobDetailScreen extends StatefulWidget {
   final String randomCode;
@@ -32,7 +31,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadJobDetail();
   }
 
@@ -2325,27 +2324,93 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                                                 ),
                                             tabs: [
                                               Tab(
-                                                icon: Icon(
-                                                  Icons.route,
-                                                  size: 20,
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 8,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.route,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'แผนการเดินทาง',
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                               Tab(
-                                                icon: Icon(
-                                                  Icons.currency_exchange,
-                                                  size: 20,
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 8,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.attach_money,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'ค่าใช้จ่าย',
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                               Tab(
-                                                icon: Icon(
-                                                  Icons.receipt_long,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Tab(
-                                                icon: Icon(
-                                                  Icons.attach_file,
-                                                  size: 20,
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 8,
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.receipt_long,
+                                                        size: 16,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'ที่อยู่ใบเสร็จ',
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -2379,14 +2444,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                               SingleChildScrollView(
                                 padding: EdgeInsets.only(bottom: 20),
                                 child: _buildInvoiceAddress(),
-                              ),
-                              // Tab 4: ไฟล์แนบ
-                              SingleChildScrollView(
-                                padding: EdgeInsets.only(bottom: 20),
-                                child: AttachedFilesWidget(
-                                  serverName: _tripData?['server_name'] ?? '',
-                                  attachedFiles: _tripData?['attached_files'] ?? [],
-                                ),
                               ),
                             ],
                           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../service/local_storage.dart';
+import '../../service/api_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
 import 'job_card_list.dart';
@@ -58,8 +59,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               ElevatedButton(
                 onPressed: () async {
+                  Navigator.pop(context); // ปิด dialog ก่อน
+                  
+                  try {
+                    // ดึง device ID และเรียก API เพื่อลบ device record
+                    String? deviceId = await ApiService.getDeviceId();
+                    if (deviceId != null) {
+                      final result = await ApiService.logoutAndRemoveDevice(deviceId);
+                      print('📋 Logout result: $result');
+                    }
+                  } catch (e) {
+                    print('⚠️ Error during logout: $e');
+                    // ไม่ให้ error นี้กระทบต่อการ logout
+                  }
+                  
+                  // ลบ profile ในเครื่องและไปหน้า login
                   await LocalStorage.deleteProfile();
-                  Navigator.pushReplacementNamed(context, '/login');
+                  if (mounted) {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppThemeConfig.AppColorScheme.light().error,
