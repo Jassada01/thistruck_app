@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import Firebase
 import UserNotifications
+import GoogleMaps
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,6 +11,9 @@ import UserNotifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     FirebaseApp.configure()
+    
+    // Configure Google Maps
+    GMSServices.provideAPIKey("AIzaSyC-qmWmKTeZYf9ohc7WqHP_8WUsK-DjIBI")
     
     // Request notification permissions
     UNUserNotificationCenter.current().delegate = self

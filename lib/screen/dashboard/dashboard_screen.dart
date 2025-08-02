@@ -22,6 +22,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadUserProfile();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // รีโหลด profile เมื่อกลับมาที่หน้านี้
+    _loadUserProfile();
+  }
+
   Future<void> _loadUserProfile() async {
     final profile = await LocalStorage.getProfile();
     print('📋 Loaded profile from storage: $profile');
@@ -137,7 +144,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               CircleAvatar(
                 radius: 50,
                 backgroundColor: colors.primary,
-                child: Icon(Icons.person, size: 50, color: colors.onPrimary),
+                backgroundImage: _userProfile?['profile_image'] != null && _userProfile!['profile_image'].toString().isNotEmpty
+                  ? NetworkImage(_userProfile!['profile_image'])
+                  : null,
+                child: _userProfile?['profile_image'] == null || _userProfile!['profile_image'].toString().isEmpty
+                  ? Icon(Icons.person, size: 50, color: colors.onPrimary)
+                  : null,
+                onBackgroundImageError: (exception, stackTrace) {
+                  // ถ้าโหลดรูปไม่สำเร็จ จะแสดง icon แทน
+                  print('Error loading profile image: $exception');
+                },
               ),
               SizedBox(height: 20),
               Text(
@@ -376,9 +392,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: Text(
               _selectedIndex == 0
                   ? 'หน้าหลัก'
-                  : _selectedIndex == 1
-                  ? 'รายการงาน'
-                  : 'จัดการโปรไฟล์',
+                  : 'รายการงาน',
               style: GoogleFonts.notoSansThai(
                 fontWeight: FontWeight.bold,
                 color: colors.textPrimary,
@@ -391,13 +405,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             actions: [
               IconButton(
                 icon: Icon(
-                  Icons.bug_report,
-                  color: colors.textSecondary,
+                  Icons.person_outline,
+                  color: colors.primary,
+                  size: 28,
                 ),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/notification-debug');
+                  setState(() {
+                    _selectedIndex = 2;
+                  });
                 },
-                tooltip: 'Debug Notifications',
+                tooltip: 'จัดการโปรไฟล์',
               ),
             ],
           ),
@@ -407,8 +424,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             backgroundColor: colors.surface,
             selectedItemColor: colors.primary,
             unselectedItemColor: colors.textSecondary,
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
+            currentIndex: _selectedIndex > 1 ? 1 : _selectedIndex,
+            onTap: (index) {
+              if (index < 2) {
+                _onItemTapped(index);
+              }
+            },
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
@@ -419,11 +440,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icon(Icons.assignment_outlined),
                 activeIcon: Icon(Icons.assignment),
                 label: 'รายการงาน',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'จัดการโปรไฟล์',
               ),
             ],
             selectedLabelStyle: GoogleFonts.notoSansThai(

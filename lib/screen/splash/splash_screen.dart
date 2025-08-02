@@ -186,6 +186,12 @@ class _SplashScreenState extends State<SplashScreen>
             
             if (checkResult['success'] == true) {
               print('✅ Device validated and last active updated');
+              
+              // อัพเดท profile ใน Local Storage ถ้ามีข้อมูลใหม่
+              if (checkResult['profile_data'] != null) {
+                await LocalStorage.saveProfile(checkResult['profile_data']);
+                print('✅ Profile updated from device check');
+              }
             } else {
               // Device ไม่พบหรือ user inactive - ลบ profile และไปหน้า login
               if (checkResult['action'] == 'redirect_to_passcode_login') {

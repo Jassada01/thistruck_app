@@ -5,7 +5,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'notification_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.38/thistruck/function/mobile';
+  static const String baseUrl = 'http://127.0.0.1/thistruck/function/mobile';
+  // static const String baseUrl = 'http://192.168.1.38/thistruck/function/mobile';
   // static const String baseUrl = 'https://thistruck.app/function/mobile';
   static const String endpoint = '$baseUrl/mainFunction.php';
 
@@ -1226,6 +1227,78 @@ class ApiService {
       }
     } catch (e) {
       print('❌ Error during logout: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+        };
+      }
+    }
+  }
+
+  // Update Action Log Status (Function 24)
+  static Future<Map<String, dynamic>> updateActionLogStatus({
+    required String actionLogId,
+    required String updateUser,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '24', // Function number for updateActionLogStatus
+        'action_log_id': actionLogId,
+        'update_user': updateUser,
+      };
+
+      print('📤 Updating action log status for ID: $actionLogId by $updateUser');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Update action log response status: ${response.statusCode}');
+      print('📥 Update action log response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Update action log result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'อัพเดทสถานะเรียบร้อยแล้ว',
+            'updated_action_id': result['updated_action_id'],
+            'auto_completed_count': result['auto_completed_count'] ?? 0,
+            'trip_status': result['trip_status'],
+            'action_data': result['action_data'],
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการอัพเดทสถานะ',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error updating action log status: $e');
       if (e.toString().contains('TimeoutException') ||
           e.toString().contains('Connection timed out')) {
         return {

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../service/api_service.dart';
+import '../../service/local_storage.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
 import 'widgets/expense_list_widget.dart';
@@ -297,13 +298,26 @@ class _JobDetailScreenState extends State<JobDetailScreen>
       return;
     }
 
-    // ดึงข้อมูลสถานที่สำหรับการแสดงใน dialog
+    // ดึงข้อมูลสถานที่และชื่อปุ่มสำหรับการแสดงใน dialog
     final currentAction = _getCurrentActionLog();
     final location =
         currentAction != null
             ? _getLocationByPlanOrder(currentAction['plan_order'])
             : null;
     final locationName = location?['location_name'] ?? '';
+    
+    // ดึงชื่อปุ่มเหมือนกับที่ใช้ในปุ่มหลัก
+    String dialogButtonText = 'อัพเดทสถานะ';
+    if (currentAction != null && currentAction['button_name'] != null) {
+      dialogButtonText = currentAction['button_name'];
+    } else {
+      dialogButtonText = buttonName;
+    }
+    
+    // เพิ่มชื่อสถานที่ในวงเล็บถ้ามี
+    if (locationName.isNotEmpty) {
+      dialogButtonText += ' ($locationName)';
+    }
 
     final result = await showDialog<bool>(
       context: context,
@@ -395,7 +409,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                     ],
                     SizedBox(height: 16),
                     Text(
-                      'คุณต้องการดำเนินการ "$buttonName" หรือไม่?',
+                      'คุณต้องการดำเนินการ "$dialogButtonText" หรือไม่?',
                       style: GoogleFonts.notoSansThai(
                         fontSize: fontProvider.getScaledFontSize(14.0),
                         fontWeight: FontWeight.w600,
@@ -830,54 +844,90 @@ class _JobDetailScreenState extends State<JobDetailScreen>
     if (!_canUpdateStatus()) return SizedBox.shrink();
 
     final currentStage = _getCurrentStage();
-    final buttonName = _getCurrentButtonName();
+    final currentAction = _getCurrentActionLog();
+    final location = currentAction != null ? _getLocationByPlanOrder(currentAction['plan_order']) : null;
+    
+    // ดึง button_name จาก action_logs หรือใช้ชื่อปุ่มเดิม
+    String buttonText = 'อัพเดทสถานะ';
+    if (currentAction != null && currentAction['button_name'] != null) {
+      buttonText = currentAction['button_name'];
+    } else {
+      buttonText = _getCurrentButtonName() ?? 'อัพเดทสถานะ';
+    }
+    
+    // เพิ่มชื่อสถานที่ในวงเล็บถ้ามี
+    if (location != null && location['location_name'] != null && location['location_name'].toString().isNotEmpty) {
+      buttonText += ' (${location['location_name']})';
+    }
 
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _isUpdatingStatus ? null : _updateWorkStatus,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // แสดง Stage นอกปุ่ม
+              if (currentStage != null) 
+                Container(
+                  margin: EdgeInsets.only(bottom: 8, left: 4),
+                  child: Text(
+                    location != null && location['location_name'] != null && location['location_name'].toString().isNotEmpty
+                        ? 'สถานะปัจจุบัน: $currentStage (${location['location_name']})'
+                        : 'สถานะปัจจุบัน: $currentStage',
+                    style: GoogleFonts.notoSansThai(
+                      fontSize: fontProvider.getScaledFontSize(13.0),
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              
+              // ปุ่ม Update สถานะ
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _isUpdatingStatus ? null : _updateWorkStatus,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        _isUpdatingStatus
+                            ? Colors.grey.withValues(alpha: 0.5)
+                            : _getStatusColor(currentStage),
+                    foregroundColor: Colors.white,
+                    elevation: _isUpdatingStatus ? 0 : 3,
+                    shadowColor: _getStatusColor(currentStage).withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  icon:
+                      _isUpdatingStatus
+                          ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : Icon(Icons.touch_app, size: 20),
+                  label: Text(
                     _isUpdatingStatus
-                        ? Colors.grey.withValues(alpha: 0.5)
-                        : _getStatusColor(currentStage),
-                foregroundColor: Colors.white,
-                elevation: _isUpdatingStatus ? 0 : 3,
-                shadowColor: _getStatusColor(currentStage).withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              icon:
-                  _isUpdatingStatus
-                      ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                      : Icon(Icons.touch_app, size: 20),
-              label: Text(
-                _isUpdatingStatus
-                    ? 'กำลังดำเนินการ...'
-                    : buttonName ?? 'อัพเดทสถานะ',
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(14.0),
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                        ? 'กำลังดำเนินการ...'
+                        : buttonText,
+                    style: GoogleFonts.notoSansThai(
+                      fontSize: fontProvider.getScaledFontSize(14.0),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -1815,23 +1865,71 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  offset: Offset(0, 2),
-                  blurRadius: 8,
-                ),
-              ],
             ),
-            child: IconButton(
+            child: PopupMenuButton<String>(
               icon: Icon(
-                Icons.refresh_rounded,
-                color: colors.primary,
-                size: 20,
+                Icons.more_vert_rounded,
+                color: Colors.white,
+                size: 28,
               ),
-              onPressed: _loadJobDetail,
+              offset: Offset(0, 40),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<String>> menuItems = [
+                  PopupMenuItem<String>(
+                    value: 'refresh',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh_rounded,
+                          color: colors.primary,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text('รีเฟรช'),
+                      ],
+                    ),
+                  ),
+                ];
+
+                // Only add driver confirmation menu if status can be updated
+                if (_canUpdateStatus()) {
+                  menuItems.add(
+                    PopupMenuItem<String>(
+                      value: 'driver_confirm',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle_rounded,
+                            color: colors.success,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text('คนขับยืนยันจบงาน'),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return menuItems;
+              },
+              onSelected: (String value) {
+                switch (value) {
+                  case 'refresh':
+                    _loadJobDetail();
+                    break;
+                  case 'driver_confirm':
+                    _handleDriverConfirmation();
+                    break;
+                }
+              },
             ),
           ),
         ],
@@ -1867,7 +1965,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
             ),
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+                padding: EdgeInsets.fromLTRB(20, 12, 20, 10),
                 child: Column(
                   children: [
                     // Top Row: Job Name with Status Badge
@@ -2362,7 +2460,10 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                             controller: _tabController,
                             children: [
                               // Tab 1: แผนการเดินทาง
-                              TravelPlanWidget(tripData: _tripData),
+                              TravelPlanWidget(
+                                tripData: _tripData,
+                                onStatusUpdated: _loadJobDetail,
+                              ),
                               // Tab 2: ค่าใช้จ่าย
                               SingleChildScrollView(
                                 padding: EdgeInsets.only(bottom: 20),
@@ -2806,6 +2907,247 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         }
       },
     );
+  }
+
+  // Handle driver confirmation for main_order=7, minor_order=1
+  void _handleDriverConfirmation() {
+    // Check if status can be updated first
+    if (!_canUpdateStatus()) {
+      _showErrorMessage('ไม่สามารถดำเนินการได้ในขณะนี้');
+      return;
+    }
+
+    if (_tripData == null || _tripData!['action_logs'] == null) {
+      _showErrorMessage('ไม่มีข้อมูลขั้นตอนการทำงาน');
+      return;
+    }
+
+    final actionLogs = _tripData!['action_logs'] as List;
+    
+    // Find action log with main_order=7 and minor_order=1
+    Map<String, dynamic>? targetLog;
+    for (var log in actionLogs) {
+      if (log['main_order'] == 7 && log['minor_order'] == 1) {
+        targetLog = log;
+        break;
+      }
+    }
+
+    if (targetLog == null) {
+      _showErrorMessage('ไม่พบขั้นตอน "คนขับยืนยันจบงาน"');
+      return;
+    }
+
+    // Check if already completed
+    if (targetLog['complete_flag'] != null) {
+      _showErrorMessage('ขั้นตอนนี้ดำเนินการเสร็จสิ้นแล้ว');
+      return;
+    }
+
+    // Show confirmation dialog (similar to _onStepIconTapped)
+    _showDriverConfirmationDialog(targetLog);
+  }
+
+  // Show confirmation dialog for driver confirmation
+  void _showDriverConfirmationDialog(Map<String, dynamic> log) {
+    final colors = AppThemeConfig.AppColorScheme.light();
+    final stepDesc = log['step_desc'] ?? 'คนขับยืนยันจบงาน';
+    final progress = log['progress'] ?? '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.success,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'ยืนยันการจบงาน',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'คุณต้องการดำเนินการ:',
+                style: GoogleFonts.notoSansThai(
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: colors.success.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  stepDesc,
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colors.success,
+                  ),
+                ),
+              ),
+              if (progress.isNotEmpty) ...[
+                SizedBox(height: 8),
+                Text(
+                  'สถานะที่จะเปลี่ยน: $progress',
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: 13,
+                    color: colors.textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'ยกเลิก',
+                style: GoogleFonts.notoSansThai(
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _updateDriverConfirmationStatus(log);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.success,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'ยืนยัน',
+                style: GoogleFonts.notoSansThai(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Update driver confirmation status via API
+  Future<void> _updateDriverConfirmationStatus(Map<String, dynamic> log) async {
+    try {
+      // Show loading
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      // Get user info from local storage
+      final userData = await LocalStorage.getProfile();
+      final userName = userData?['user_name'] ?? 'Mobile User';
+
+      // Call API
+      final result = await ApiService.updateActionLogStatus(
+        actionLogId: log['id'].toString(),
+        updateUser: userName,
+      );
+
+      // Hide loading
+      if (mounted) {
+        Navigator.of(context).pop();
+
+        if (result['success']) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['message'] ?? 'ยืนยันการจบงานเรียบร้อยแล้ว',
+                style: GoogleFonts.notoSansThai(),
+              ),
+              backgroundColor: AppThemeConfig.AppColorScheme.light().success,
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+
+          // Refresh data
+          _loadJobDetail();
+        } else {
+          // Show error message
+          _showErrorMessage(result['message'] ?? 'ไม่สามารถยืนยันการจบงานได้');
+        }
+      }
+    } catch (e) {
+      // Hide loading
+      if (mounted) {
+        Navigator.of(context).pop();
+        _showErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อ: $e');
+      }
+    }
+  }
+
+  // Helper method to show error messages
+  void _showErrorMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: GoogleFonts.notoSansThai(),
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
   }
 }
 

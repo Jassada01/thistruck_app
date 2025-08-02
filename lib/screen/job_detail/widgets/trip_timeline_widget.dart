@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../provider/font_size_provider.dart';
+import '../../../widgets/map_modal.dart';
 
 class TripTimelineWidget extends StatelessWidget {
   final List<dynamic> tripLocations;
@@ -220,6 +220,10 @@ class TripTimelineWidget extends StatelessWidget {
       return Colors.orange;
     } else if (characteristic.contains('drop') || characteristic.contains('วางตู้')) {
       return Colors.purple;
+    } else if (characteristic.contains('loading') || characteristic.contains('รับสินค้า')) {
+      return Colors.teal;
+    } else if (characteristic.contains('other') || characteristic.contains('อื่น')) {
+      return Colors.brown;
     }
     
     return Colors.grey;
@@ -229,77 +233,56 @@ class TripTimelineWidget extends StatelessWidget {
     final characteristic = jobCharacteristic.toLowerCase();
     
     if (characteristic.contains('pick up') || characteristic.contains('รับตู้')) {
+      // แยกประเภทตู้
+      if (characteristic.contains('ตู้หนัก')) {
+        return 'รับตู้หนัก';
+      } else if (characteristic.contains('ตู้เปล่า')) {
+        return 'รับตู้เปล่า';
+      }
       return 'รับตู้';
     } else if (characteristic.contains('delivery') || characteristic.contains('ส่งสินค้า')) {
       return 'ส่งสินค้า';
     } else if (characteristic.contains('return') || characteristic.contains('คืนตู้')) {
+      // แยกประเภทตู้
+      if (characteristic.contains('ตู้หนัก')) {
+        return 'คืนตู้หนัก';
+      } else if (characteristic.contains('ตู้เปล่า')) {
+        return 'คืนตู้เปล่า';
+      }
       return 'คืนตู้';
     } else if (characteristic.contains('drop') || characteristic.contains('วางตู้')) {
       return 'วางตู้';
+    } else if (characteristic.contains('loading') || characteristic.contains('รับสินค้า')) {
+      return 'รับสินค้า';
+    } else if (characteristic.contains('other') || characteristic.contains('อื่น')) {
+      return 'อื่นๆ';
     }
     
     return 'อื่นๆ';
   }
 
   void _openLocationMap(BuildContext context, dynamic location) async {
-    final mapUrl = location['map_url'] ?? '';
-    final latitude = location['latitude'] ?? '';
-    final longitude = location['longitude'] ?? '';
-    final locationName = location['location_name'] ?? '';
-
-    String urlToOpen = '';
-
-    // Try to use the provided map_url first
-    if (mapUrl.isNotEmpty) {
-      urlToOpen = mapUrl;
-    } 
-    // If no map_url, try to create one from coordinates
-    else if (latitude.isNotEmpty && longitude.isNotEmpty) {
-      urlToOpen = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    }
-    // Last resort: search by location name
-    else if (locationName.isNotEmpty) {
-      final encodedName = Uri.encodeComponent(locationName);
-      urlToOpen = 'https://www.google.com/maps/search/?api=1&query=$encodedName';
-    }
-
-    if (urlToOpen.isNotEmpty) {
-      try {
-        final Uri url = Uri.parse(urlToOpen);
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-        } else {
-          if (context.mounted) {
-            _showMapErrorDialog(context, 'ไม่สามารถเปิดแผนที่ได้');
-          }
-        }
-      } catch (e) {
-        if (context.mounted) {
-          _showMapErrorDialog(context, 'เกิดข้อผิดพลาดในการเปิดแผนที่: $e');
-        }
-      }
-    } else {
-      if (context.mounted) {
-        _showMapErrorDialog(context, 'ไม่พบข้อมูลตำแหน่งสำหรับสถานที่นี้');
-      }
-    }
-  }
-
-  void _showMapErrorDialog(BuildContext context, String message) {
-    showDialog(
+    // Show modal with map information
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
+      useSafeArea: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('ไม่สามารถเปิดแผนที่ได้'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('ตกลง'),
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: SingleChildScrollView(
+              child: MapModalWidget(location: location),
             ),
-          ],
+          ),
         );
       },
     );
   }
+
 }
