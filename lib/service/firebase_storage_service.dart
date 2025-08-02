@@ -1,25 +1,136 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class FirebaseStorageService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
+  
+  /// Compress image to reduce file size to under 400KB
+  static Future<File?> compressImage(File imageFile) async {
+    try {
+      print('🔧 Starting image compression...');
+      print('📏 Original file size: ${imageFile.lengthSync()} bytes (${getFileSizeString(imageFile.lengthSync())})');
+      
+      const int maxSizeInBytes = 400 * 1024; // 400KB
+      
+      // If file is already under 400KB, return original
+      if (imageFile.lengthSync() <= maxSizeInBytes) {
+        print('✅ File already under 400KB, no compression needed');
+        return imageFile;
+      }
+      
+      // Get file info
+      final String fileExtension = path.extension(imageFile.path).toLowerCase();
+      final String directory = path.dirname(imageFile.path);
+      final String baseName = path.basenameWithoutExtension(imageFile.path);
+      final String compressedPath = '$directory/${baseName}_compressed$fileExtension';
+      
+      // Start with high quality and reduce until file size is under 400KB
+      int quality = 85;
+      Uint8List? compressedBytes;
+      
+      while (quality > 10) {
+        print('🔧 Trying compression with quality: $quality%');
+        
+        compressedBytes = await FlutterImageCompress.compressWithFile(
+          imageFile.absolute.path,
+          quality: quality,
+          format: fileExtension == '.png' ? CompressFormat.png : CompressFormat.jpeg,
+        );
+        
+        if (compressedBytes != null) {
+          print('📏 Compressed size: ${compressedBytes.length} bytes (${getFileSizeString(compressedBytes.length)})');
+          
+          if (compressedBytes.length <= maxSizeInBytes) {
+            // Save compressed file
+            final File compressedFile = File(compressedPath);
+            await compressedFile.writeAsBytes(compressedBytes);
+            
+            print('✅ Compression successful! Final size: ${getFileSizeString(compressedBytes.length)}');
+            return compressedFile;
+          }
+        }
+        
+        // Reduce quality and try again
+        quality -= 15;
+      }
+      
+      // If still too large, try reducing dimensions
+      if (compressedBytes != null && compressedBytes.length > maxSizeInBytes) {
+        print('🔧 File still too large, trying dimension reduction...');
+        
+        // Try different widths until file size is acceptable
+        final List<int> widths = [1024, 800, 600, 400, 300];
+        
+        for (int width in widths) {
+          print('🔧 Trying compression with width: ${width}px');
+          
+          compressedBytes = await FlutterImageCompress.compressWithFile(
+            imageFile.absolute.path,
+            quality: 75,
+            minWidth: width,
+            minHeight: (width * 0.75).round(), // Maintain aspect ratio
+            format: CompressFormat.jpeg,
+          );
+          
+          if (compressedBytes != null) {
+            print('📏 Compressed size: ${compressedBytes.length} bytes (${getFileSizeString(compressedBytes.length)})');
+            
+            if (compressedBytes.length <= maxSizeInBytes) {
+              final File compressedFile = File(compressedPath);
+              await compressedFile.writeAsBytes(compressedBytes);
+              
+              print('✅ Compression with dimension reduction successful! Final size: ${getFileSizeString(compressedBytes.length)}');
+              return compressedFile;
+            }
+          }
+        }
+      }
+      
+      print('❌ Could not compress image to under 400KB');
+      return null;
+      
+    } catch (e) {
+      print('❌ Error compressing image: $e');
+      return null;
+    }
+  }
 
   /// Upload profile image to Firebase Storage
   static Future<Map<String, dynamic>> uploadProfileImage({
     required File imageFile,
     required String driverId,
   }) async {
+    File? fileToUpload;
+    
     try {
       print('🔥 FirebaseStorageService.uploadProfileImage ENTRY');
       print('📁 ImageFile: ${imageFile.path}');
       print('👤 DriverId: $driverId');
-      print('📏 File size: ${imageFile.lengthSync()} bytes');
+      print('📏 Original file size: ${imageFile.lengthSync()} bytes (${getFileSizeString(imageFile.lengthSync())})');
       print('📄 File exists: ${imageFile.existsSync()}');
+      
+      // Compress image before upload
+      print('🔧 Compressing image...');
+      final File? compressedFile = await compressImage(imageFile);
+      
+      if (compressedFile == null) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถบีบอัดรูปภาพได้ กรุณาเลือกรูปภาพที่มีขนาดเล็กกว่า',
+        };
+      }
+      
+      // Use compressed file for upload
+      fileToUpload = compressedFile;
+      print('📏 Final file size for upload: ${fileToUpload.lengthSync()} bytes (${getFileSizeString(fileToUpload.lengthSync())})');
+      print('📄 Compressed file exists: ${fileToUpload.existsSync()}');
       
       // Generate unique filename
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileExtension = path.extension(imageFile.path);
+      final String fileExtension = path.extension(fileToUpload.path);
       final String fileName = 'profile_${driverId}_$timestamp$fileExtension';
       
       print('🔥 Generated filename: $fileName');
@@ -33,13 +144,13 @@ class FirebaseStorageService {
 
       print('🔥 Firebase Storage reference created');
       print('📤 Starting profile image upload...');
-      print('📁 File path: ${imageFile.path}');
+      print('📁 File path: ${fileToUpload.path}');
       print('🏷️ Target filename: $fileName');
 
-      // Upload file
+      // Upload compressed file
       print('🔥 About to create UploadTask');
       final UploadTask uploadTask = storageRef.putFile(
-        imageFile,
+        fileToUpload,
         SettableMetadata(
           contentType: _getContentType(fileExtension),
           customMetadata: {
@@ -62,6 +173,16 @@ class FirebaseStorageService {
         print('✅ Upload successful!');
         print('🔗 Download URL: $downloadUrl');
         
+        // Clean up compressed file if it's different from original
+        if (fileToUpload.path != imageFile.path) {
+          try {
+            await fileToUpload.delete();
+            print('🧹 Cleaned up compressed file');
+          } catch (e) {
+            print('⚠️ Could not delete compressed file: $e');
+          }
+        }
+        
         return {
           'success': true,
           'downloadUrl': downloadUrl,
@@ -71,6 +192,17 @@ class FirebaseStorageService {
         };
       } else {
         print('❌ Upload failed with state: ${snapshot.state}');
+        
+        // Clean up compressed file if upload failed
+        if (fileToUpload.path != imageFile.path) {
+          try {
+            await fileToUpload.delete();
+            print('🧹 Cleaned up compressed file after failed upload');
+          } catch (e) {
+            print('⚠️ Could not delete compressed file: $e');
+          }
+        }
+        
         return {
           'success': false,
           'message': 'การอัพโหลดไม่สำเร็จ',
@@ -78,6 +210,16 @@ class FirebaseStorageService {
       }
     } catch (e) {
       print('❌ Error uploading profile image: $e');
+      
+      // Clean up compressed file in case of error
+      try {
+        if (fileToUpload != null && fileToUpload.path != imageFile.path) {
+          await fileToUpload.delete();
+          print('🧹 Cleaned up compressed file after error');
+        }
+      } catch (cleanupError) {
+        print('⚠️ Could not delete compressed file: $cleanupError');
+      }
       
       if (e.toString().contains('network-request-failed')) {
         return {
