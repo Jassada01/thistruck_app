@@ -5,8 +5,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'notification_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1/thistruck/function/mobile';
-  // static const String baseUrl = 'http://192.168.1.38/thistruck/function/mobile';
+  // static const String baseUrl = 'http://127.0.0.1/thistruck/function/mobile';
+  static const String baseUrl = 'http://192.168.1.58/thistruck/function/mobile';
   // static const String baseUrl = 'https://thistruck.app/function/mobile';
   static const String endpoint = '$baseUrl/mainFunction.php';
 
@@ -1299,6 +1299,76 @@ class ApiService {
       }
     } catch (e) {
       print('❌ Error updating action log status: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+        };
+      }
+    }
+  }
+
+  // Update Profile Image URL (Function 25)
+  static Future<Map<String, dynamic>> updateProfileImage({
+    required String driverId,
+    required String imageUrl,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '25', // Function number for updateProfileImage
+        'driver_id': driverId,
+        'image_url': imageUrl,
+      };
+
+      print('📤 Updating profile image for driver ID: $driverId');
+      print('🖼️ New image URL: $imageUrl');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Update profile image response status: ${response.statusCode}');
+      print('📥 Update profile image response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Update profile image result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'อัพเดทรูปโปรไฟล์เรียบร้อยแล้ว',
+            'profile_data': result['profile_data'],
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการอัพเดทรูปโปรไฟล์',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error updating profile image: $e');
       if (e.toString().contains('TimeoutException') ||
           e.toString().contains('Connection timed out')) {
         return {

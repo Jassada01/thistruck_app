@@ -158,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
       await Future.delayed(Duration(milliseconds: 800));
 
       // Step 3: Setup notifications and request permission immediately
-      await _updateProgress('กำลังตั้งค่าการแจ้งเตือน...', 0.6);
+      await _updateProgress('กำลังตั้งค่าการแจ้งเตือน...', 0.5);
       await NotificationService.createNotificationChannel();
       
       // Initialize notification service and request permission right away
@@ -167,14 +167,16 @@ class _SplashScreenState extends State<SplashScreen>
       
       await Future.delayed(Duration(milliseconds: 800));
 
+      await Future.delayed(Duration(milliseconds: 800));
+
       // Step 4: Check terms acceptance and login status
-      await _updateProgress('กำลังตรวจสอบการเข้าสู่ระบบ...', 0.8);
+      await _updateProgress('กำลังตรวจสอบการเข้าสู่ระบบ...', 0.7);
       final termsAccepted = await LocalStorage.isTermsAccepted();
       final hasProfile = await LocalStorage.hasProfile();
       await Future.delayed(Duration(milliseconds: 800));
 
       // Step 5: Final setup
-      await _updateProgress('เกือบเสร็จแล้ว...', 1.0);
+      await _updateProgress('เกือบเสร็จแล้ว...', 0.9);
 
       // *** เพิ่มส่วนนี้: Check device และ update last active หาก user login แล้ว ***
       if (hasProfile) {

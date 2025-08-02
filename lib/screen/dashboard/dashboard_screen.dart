@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../service/local_storage.dart';
 import '../../service/api_service.dart';
+import '../../service/image_picker_service.dart';
+import '../../service/firebase_storage_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
+import '../../widgets/profile_image_upload.dart';
 import 'job_card_list.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -141,19 +145,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             children: [
               SizedBox(height: 20),
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: colors.primary,
-                backgroundImage: _userProfile?['profile_image'] != null && _userProfile!['profile_image'].toString().isNotEmpty
-                  ? NetworkImage(_userProfile!['profile_image'])
-                  : null,
-                child: _userProfile?['profile_image'] == null || _userProfile!['profile_image'].toString().isEmpty
-                  ? Icon(Icons.person, size: 50, color: colors.onPrimary)
-                  : null,
-                onBackgroundImageError: (exception, stackTrace) {
-                  // ถ้าโหลดรูปไม่สำเร็จ จะแสดง icon แทน
-                  print('Error loading profile image: $exception');
+              ProfileImageUpload(
+                userProfile: _userProfile,
+                onImageUpdated: () {
+                  // Reload profile after image update
+                  _loadUserProfile();
                 },
+              ),
+              SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    print('🔄 Dashboard: Upload button pressed');
+                    
+                    // เรียก ImagePickerService ตรงๆ แล้วทำการ upload (image_picker will handle permissions automatically)
+                    final File? imageFile = await ImagePickerService.pickProfileImage(context);
+                    
+                    if (imageFile != null && mounted) {
+                      print('✅ Image selected, starting upload process');
+                      
+                      // เรียก upload method (จำลองจาก ProfileImageUpload)
+                      _handleDashboardImageUpload(imageFile);
+                    } else {
+                      print('❌ No image selected');
+                    }
+                  },
+                  icon: Icon(Icons.camera_alt),
+                  label: Text(
+                    'อัพโหลดรูปโปรไฟล์',
+                    style: GoogleFonts.notoSansThai(
+                      fontSize: fontProvider.getScaledFontSize(14.0),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colors.primary,
+                    side: BorderSide(color: colors.primary),
+                    minimumSize: Size(double.infinity, 45),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
               ),
               SizedBox(height: 20),
               Text(
@@ -377,6 +410,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _buildProfileContent();
       default:
         return _buildHomeContent();
+    }
+  }
+
+  Future<void> _handleDashboardImageUpload(File imageFile) async {
+    print('🔄 Dashboard: _handleDashboardImageUpload called');
+    
+    try {
+      // Get driver ID
+      final String? driverId = _userProfile?['driver_id']?.toString();
+      
+      if (driverId == null) {
+        print('❌ Driver ID is null');
+        return;
+      }
+      
+      print('🔄 Dashboard: About to call FirebaseStorageService');
+      
+      // Upload to Firebase Storage
+      final uploadResult = await FirebaseStorageService.uploadProfileImage(
+        imageFile: imageFile,
+        driverId: driverId,
+      );
+      
+      print('🔄 Dashboard: Firebase upload result: $uploadResult');
+      
+      if (uploadResult['success']) {
+        // Update database with new image URL
+        final String imageUrl = uploadResult['downloadUrl'];
+        print('🔄 Dashboard: About to call API to update database');
+        
+        final apiResult = await ApiService.updateProfileImage(
+          driverId: driverId,
+          imageUrl: imageUrl,
+        );
+        
+        print('🔄 Dashboard: API result: $apiResult');
+        
+        if (apiResult['success']) {
+          // Update local storage with new profile data
+          if (apiResult['profile_data'] != null) {
+            await LocalStorage.saveProfile(apiResult['profile_data']);
+          }
+          
+          // Reload profile
+          _loadUserProfile();
+          
+          print('✅ Dashboard: Upload completed successfully');
+        }
+      }
+    } catch (e) {
+      print('❌ Dashboard: Error during upload: $e');
     }
   }
 
