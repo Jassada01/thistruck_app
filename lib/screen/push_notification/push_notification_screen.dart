@@ -142,8 +142,8 @@ class _PushNotificationDebugScreenState extends State<PushNotificationDebugScree
   Future<void> _logNotificationSettings() async {
     _addDebugLog('📋 Logging notification settings...');
     try {
-      await _notificationService.logNotificationSettings();
-      _addDebugLog('✅ Notification settings logged to console');
+      // Method removed for production - just show message
+      _addDebugLog('⚠️ Settings logging removed in production version');
     } catch (e) {
       _addDebugLog('💥 Error logging settings: $e');
     }
@@ -152,8 +152,8 @@ class _PushNotificationDebugScreenState extends State<PushNotificationDebugScree
   Future<void> _logPendingNotifications() async {
     _addDebugLog('📄 Logging pending notifications...');
     try {
-      await _notificationService.logPendingNotifications();
-      _addDebugLog('✅ Pending notifications logged to console');
+      // Method removed for production - just show message
+      _addDebugLog('⚠️ Pending notifications logging removed in production version');
     } catch (e) {
       _addDebugLog('💥 Error logging pending notifications: $e');
     }
@@ -162,8 +162,10 @@ class _PushNotificationDebugScreenState extends State<PushNotificationDebugScree
   Future<void> _runDiagnostic() async {
     _addDebugLog('🔍 Running comprehensive diagnostic...');
     try {
-      await _notificationService.runNotificationDiagnostic();
-      _addDebugLog('✅ Diagnostic completed - check console for details');
+      // Method removed for production - just show basic info
+      _addDebugLog('⚠️ Full diagnostic removed in production version');
+      _addDebugLog('📱 Current token: ${_deviceToken?.substring(0, 20) ?? 'null'}...');
+      _addDebugLog('🔔 Permission: $_permissionStatus');
     } catch (e) {
       _addDebugLog('💥 Error running diagnostic: $e');
     }

@@ -162,7 +162,7 @@ class TripTimelineWidget extends StatelessWidget {
             Text(
               locationCode,
               style: TextStyle(
-                fontSize: fontSizeProvider.getScaledFontSize(12),
+                fontSize: fontSizeProvider.getScaledFontSize(15),
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
               ),
@@ -175,7 +175,7 @@ class TripTimelineWidget extends StatelessWidget {
             Text(
               locationName,
               style: TextStyle(
-                fontSize: fontSizeProvider.getScaledFontSize(9),
+                fontSize: fontSizeProvider.getScaledFontSize(13),
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
@@ -194,7 +194,7 @@ class TripTimelineWidget extends StatelessWidget {
               child: Text(
                 _getJobCharacteristicShort(jobCharacteristic),
                 style: TextStyle(
-                  fontSize: fontSizeProvider.getScaledFontSize(8),
+                  fontSize: fontSizeProvider.getScaledFontSize(15),
                   fontWeight: FontWeight.w500,
                   color: iconColor,
                 ),

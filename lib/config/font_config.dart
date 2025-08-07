@@ -31,7 +31,7 @@ class AppFonts {
   );
   
   static TextStyle get titleMedium => GoogleFonts.notoSansThai(
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,
   );
@@ -49,7 +49,7 @@ class AppFonts {
   );
   
   static TextStyle get bodyMedium => GoogleFonts.notoSansThai(
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.1,
   );
@@ -67,7 +67,7 @@ class AppFonts {
   );
   
   static TextStyle get labelMedium => GoogleFonts.notoSansThai(
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,
   );
@@ -86,7 +86,7 @@ class AppFonts {
   );
   
   static TextStyle get buttonMedium => GoogleFonts.notoSansThai(
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
   );
@@ -195,10 +195,10 @@ class AppFontWeights {
 class AppFontSizes {
   static const double xs = 10;
   static const double sm = 12;
-  static const double base = 14;
-  static const double lg = 16;
-  static const double xl = 18;
-  static const double xl2 = 20;
+  static const double base = 16;
+  static const double lg = 18;
+  static const double xl = 20;
+  static const double xl2 = 22;
   static const double xl3 = 24;
   static const double xl4 = 28;
   static const double xl5 = 32;

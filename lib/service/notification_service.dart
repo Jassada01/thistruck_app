@@ -4,53 +4,18 @@ import 'package:firebase_core/firebase_core.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter/material.dart';
 import 'notification_navigation_service.dart';
+import 'badge_service.dart';
 import 'dart:convert';
 
 // Background message handler
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  _logNotificationDetails('📱 Background Message', message);
+  
+  // Increment badge count by 1 when push notification arrives
+  await BadgeService.incrementBadgeCountOnPush();
 }
 
-// Helper function for detailed notification logging
-void _logNotificationDetails(String context, RemoteMessage message) {
-  print('\n========== $context ==========');
-  print('📨 Message ID: ${message.messageId}');
-  print('🕐 Sent Time: ${message.sentTime}');
-  print('🏷️ Collapse Key: ${message.collapseKey ?? 'N/A'}');
-  print('🔔 Category: ${message.category ?? 'N/A'}');
-  print('📊 Message Type: ${message.messageType ?? 'N/A'}');
-  print('🎯 From: ${message.from ?? 'N/A'}');
-  print('📧 TTL: ${message.ttl ?? 'N/A'}');
-  
-  // Notification details
-  if (message.notification != null) {
-    print('📢 NOTIFICATION:');
-    print('  📰 Title: ${message.notification!.title}');
-    print('  📝 Body: ${message.notification!.body}');
-    print('  🖼️ Android Image: ${message.notification!.android?.imageUrl ?? 'N/A'}');
-    print('  🔊 Android Sound: ${message.notification!.android?.sound ?? 'N/A'}');
-    print('  🎨 Android Color: ${message.notification!.android?.color ?? 'N/A'}');
-    print('  📱 Android Channel ID: ${message.notification!.android?.channelId ?? 'N/A'}');
-    print('  🔔 Android Click Action: ${message.notification!.android?.clickAction ?? 'N/A'}');
-    print('  🍎 iOS Sound: ${message.notification!.apple?.sound ?? 'N/A'}');
-    print('  🏷️ iOS Badge: ${message.notification!.apple?.badge ?? 'N/A'}');
-  } else {
-    print('📢 NOTIFICATION: null (data-only message)');
-  }
-  
-  // Data payload
-  if (message.data.isNotEmpty) {
-    print('📦 DATA PAYLOAD:');
-    message.data.forEach((key, value) {
-      print('  🔑 $key: $value');
-    });
-  } else {
-    print('📦 DATA PAYLOAD: Empty');
-  }
-  
-  print('============================================\n');
-}
+
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -80,10 +45,7 @@ class NotificationService {
 
     String permissionStatus = settings.authorizationStatus.name;
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('Permission granted');
-    } else {
-      print('Permission denied');
+    if (settings.authorizationStatus != AuthorizationStatus.authorized) {
       return permissionStatus;
     }
 
@@ -91,8 +53,7 @@ class NotificationService {
     await _initializeLocalNotifications();
 
     // Get device token
-    String? token = await _firebaseMessaging.getToken();
-    print('Device Token: $token');
+    await _firebaseMessaging.getToken();
 
     // Setup message listeners
     _setupMessageListeners();
@@ -119,18 +80,10 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        print('\n========== 👆 Local Notification Tapped ==========');
-        print('🆔 Notification ID: ${response.id}');
-        print('🏷️ Action ID: ${response.actionId ?? 'N/A'}');
-        print('📦 Payload: ${response.payload ?? 'No payload'}');
-        print('📱 Input: ${response.input ?? 'N/A'}');
-        print('🔔 Details: ${response.notificationResponseType.name}');
-        print('================================================\n');
-        
         // Handle local notification tap
         NotificationNavigationService.handleNotificationTap(response.payload);
         
-        onNotificationTapped?.call('👆 Notification tapped: ${response.payload ?? 'No payload'}');
+        onNotificationTapped?.call('Notification tapped');
       },
     );
   }
@@ -139,21 +92,22 @@ class NotificationService {
   void _setupMessageListeners() {
     // Listen for foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _logNotificationDetails('🔔 Foreground Message', message);
       showLocalNotification(message);
       onMessageReceived?.call('📱 ${message.notification?.title}: ${message.notification?.body}');
+      
+      // Increment badge count by 1 when push notification arrives
+      BadgeService.incrementBadgeCountOnPush();
     });
 
     // Listen for message taps when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _logNotificationDetails('👆 Message Tap (Background)', message);
       _handleNotificationTap(message);
       onMessageReceived?.call('👆 Clicked: ${message.notification?.title}');
     });
     
     // Listen for token refresh
     FirebaseMessaging.instance.onTokenRefresh.listen((String token) {
-      print('🔄 FCM Token Refreshed: $token');
+      // Token refreshed
     });
   }
 
@@ -161,7 +115,6 @@ class NotificationService {
   Future<void> _handleInitialMessage() async {
     RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
-      _logNotificationDetails('🚀 App Opened from Terminated State', initialMessage);
       _handleNotificationTap(initialMessage);
       onMessageReceived?.call('🚀 App opened from: ${initialMessage.notification?.title}');
     }
@@ -169,10 +122,8 @@ class NotificationService {
 
   // Show local notification (only when app is in foreground)
   Future<void> showLocalNotification(RemoteMessage message) async {
-    // ตรวจสอบว่า notification นี้ซ้ำกับ system notification หรือไม่
-    // โดยเช็คว่ามี notification payload หรือไม่
+    // Check if this is a data-only message
     if (message.notification == null) {
-      print('📦 Data-only message, not showing local notification');
       return;
     }
     
@@ -203,7 +154,6 @@ class NotificationService {
       
       final String payload = json.encode(message.data);
       
-      print('🔔 Showing local notification: $title');
       await _localNotifications.show(
         notificationId,
         title,
@@ -212,8 +162,7 @@ class NotificationService {
         payload: payload,
       );
     } catch (e) {
-      print('❌ Error showing notification: $e');
-      print('📋 Stack trace: ${StackTrace.current}');
+      // Silent error handling
     }
   }
 
@@ -267,109 +216,17 @@ class NotificationService {
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
-      print('✅ Android notification channel created successfully');
     } catch (e) {
-      print('❌ Error creating notification channel: $e');
+      // Silent error handling
     }
   }
 
-  // Get current notification settings for debugging
-  Future<void> logNotificationSettings() async {
-    NotificationSettings settings = await _firebaseMessaging.getNotificationSettings();
-    print('\n========== 📱 Notification Settings ==========');
-    print('🔔 Authorization Status: ${settings.authorizationStatus.name}');
-    print('📢 Alert Setting: ${settings.alert.name}');
-    print('📣 Announcement Setting: ${settings.announcement.name}');
-    print('🏷️ Badge Setting: ${settings.badge.name}');
-    print('🔒 Car Play Setting: ${settings.carPlay.name}');
-    print('🚨 Critical Alert Setting: ${settings.criticalAlert.name}');
-    print('🔐 Lock Screen Setting: ${settings.lockScreen.name}');
-    print('📲 Notification Center Setting: ${settings.notificationCenter.name}');
-    print('🔊 Sound Setting: ${settings.sound.name}');
-    print('⏰ Timed Sensitive Setting: ${settings.timeSensitive.name}');
-    print('=============================================\n');
-  }
-
-  // Debug method to show all recent notifications
-  Future<void> logPendingNotifications() async {
-    List<PendingNotificationRequest> pendingNotifications = 
-        await _localNotifications.pendingNotificationRequests();
-    print('\n========== 📋 Pending Notifications ==========');
-    print('📊 Count: ${pendingNotifications.length}');
-    for (var notification in pendingNotifications) {
-      print('🆔 ID: ${notification.id}');
-      print('📰 Title: ${notification.title}');
-      print('📝 Body: ${notification.body}');
-      print('📦 Payload: ${notification.payload}');
-      print('---');
-    }
-    print('=============================================\n');
-  }
-
-  // Comprehensive diagnostic method
-  Future<void> runNotificationDiagnostic() async {
-    print('\n========== 🔍 NOTIFICATION DIAGNOSTIC ==========');
-    
-    // Check FCM settings
-    NotificationSettings settings = await _firebaseMessaging.getNotificationSettings();
-    print('🔔 FCM Authorization: ${settings.authorizationStatus.name}');
-    print('📢 Alert Setting: ${settings.alert.name}');
-    print('🔊 Sound Setting: ${settings.sound.name}');
-    print('🏷️ Badge Setting: ${settings.badge.name}');
-    
-    // Check device token
-    String? token = await getDeviceToken();
-    print('🔑 Device Token: ${token != null ? 'Available (${token.length} chars)' : 'NULL'}');
-    
-    // Test local notification
-    print('🧪 Testing local notification...');
-    try {
-      await _localNotifications.show(
-        999999, // Test ID
-        'Test Notification',
-        'This is a diagnostic test notification',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription: 'Test channel',
-            importance: Importance.max,
-            priority: Priority.high,
-          ),
-        ),
-      );
-      print('✅ Local notification test successful');
-    } catch (e) {
-      print('❌ Local notification test failed: $e');
-    }
-    
-    // Check Android notification channels
-    try {
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      
-      if (androidPlugin != null) {
-        print('✅ Android plugin available');
-      } else {
-        print('❌ Android plugin not available');
-      }
-    } catch (e) {
-      print('❌ Error checking Android plugin: $e');
-    }
-    
-    print('===============================================\n');
-  }
 
   // Handle notification tap from FCM message
   void _handleNotificationTap(RemoteMessage message) {
-    print('🎯 Handling notification tap from FCM message');
-    print('📦 Message data: ${message.data}');
-    
     if (message.data.isNotEmpty) {
-      // ส่ง data ไปยัง NotificationNavigationService เพื่อจัดการ navigation
+      // Handle navigation
       NotificationNavigationService.handleNotificationNavigation(message.data);
-    } else {
-      print('⚠️ No data in notification message');
     }
   }
 

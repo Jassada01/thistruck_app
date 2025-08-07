@@ -201,7 +201,7 @@ class _TravelPlanWidgetState extends State<TravelPlanWidget> {
                                 : Text(
                                     order.toString(),
                                     style: GoogleFonts.notoSansThai(
-                                      fontSize: fontProvider.getScaledFontSize(12.0),
+                                      fontSize: fontProvider.getScaledFontSize(15.0),
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -293,7 +293,7 @@ class _TravelPlanWidgetState extends State<TravelPlanWidget> {
                         child: Text(
                           log['stage'],
                           style: GoogleFonts.notoSansThai(
-                            fontSize: fontProvider.getScaledFontSize(10.0),
+                            fontSize: fontProvider.getScaledFontSize(13.0),
                             color: stepColor,
                             fontWeight: FontWeight.w600,
                           ),
@@ -311,7 +311,7 @@ class _TravelPlanWidgetState extends State<TravelPlanWidget> {
                         child: Text(
                           location['job_characteristic'],
                           style: GoogleFonts.notoSansThai(
-                            fontSize: fontProvider.getScaledFontSize(10.0),
+                            fontSize: fontProvider.getScaledFontSize(13.0),
                             color: colors.warning,
                             fontWeight: FontWeight.w600,
                           ),

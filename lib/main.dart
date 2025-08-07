@@ -8,8 +8,10 @@ import 'screen/auth/login_screen.dart';
 import 'screen/dashboard/dashboard_screen.dart';
 import 'screen/push_notification/push_notification_screen.dart';
 import 'screen/job_detail/job_detail_screen.dart';
+import 'screen/notifications/notifications_screen.dart';
 import 'service/notification_service.dart';
 import 'service/notification_navigation_service.dart';
+import 'service/badge_service.dart';
 import 'provider/font_size_provider.dart';
 
 void main() async {
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
               '/login': (context) => LoginScreen(),
               '/dashboard': (context) => DashboardScreen(),
               '/notification-debug': (context) => PushNotificationDebugScreen(),
+              '/notifications': (context) => NotificationsScreen(),
             },
             onGenerateRoute: (settings) {
               if (settings.name == '/job-detail') {

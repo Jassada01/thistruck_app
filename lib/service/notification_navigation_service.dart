@@ -9,7 +9,7 @@ class NotificationNavigationService {
 
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  /// จัดการการนำทางจาก notification data
+  /// จัดการการนำทางจาก notification data - ไปหน้า notifications ทุกครั้ง
   static Future<void> handleNotificationNavigation(Map<String, dynamic> data) async {
     final BuildContext? context = navigatorKey.currentContext;
     if (context == null) {
@@ -17,32 +17,10 @@ class NotificationNavigationService {
       return;
     }
 
-    final String? page = data['page'];
-    if (page == null) {
-      print('⚠️ No page specified in notification data');
-      return;
-    }
+    print('🧭 Navigating to notifications screen with data: $data');
 
-    print('🧭 Navigating to page: $page with data: $data');
-
-    switch (page) {
-      case 'jobDetail':
-        await _navigateToJobDetail(context, data);
-        break;
-      case 'dashboard':
-        await _navigateToDashboard(context, data);
-        break;
-      case 'notification':
-        await _navigateToNotificationScreen(context, data);
-        break;
-      default:
-        print('⚠️ Unknown page type: $page');
-        // สำหรับหน้าที่ไม่รู้จัก ให้ไปหน้า dashboard
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/dashboard', 
-          (route) => false,
-        );
-    }
+    // ไปหน้า notifications ทุกครั้งไม่ว่า notification จะมี data อะไร
+    await _navigateToNotificationsScreen(context, data);
   }
 
   /// นำทางไปหน้ารายละเอียดงาน
@@ -94,16 +72,16 @@ class NotificationNavigationService {
     }
   }
 
-  /// นำทางไปหน้า notification debug
-  static Future<void> _navigateToNotificationScreen(
+  /// นำทางไปหน้า notifications list
+  static Future<void> _navigateToNotificationsScreen(
     BuildContext context,
     Map<String, dynamic> data
   ) async {
     try {
-      await Navigator.of(context).pushNamed('/notification-debug');
-      print('✅ Successfully navigated to notification screen');
+      await Navigator.of(context).pushNamed('/notifications');
+      print('✅ Successfully navigated to notifications screen');
     } catch (e) {
-      print('❌ Error navigating to notification screen: $e');
+      print('❌ Error navigating to notifications screen: $e');
     }
   }
 

@@ -1031,7 +1031,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
             Text(
               label,
               style: GoogleFonts.notoSansThai(
-                fontSize: fontProvider.getScaledFontSize(9.0),
+                fontSize: fontProvider.getScaledFontSize(12.0),
                 color: colors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
@@ -1042,7 +1042,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               child: Text(
                 displayValue,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(14.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1071,7 +1071,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 Text(
                   'Container ID',
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    fontSize: fontProvider.getScaledFontSize(12.0),
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1103,7 +1103,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               child: Text(
                 displayValue,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(14.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1132,7 +1132,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 Text(
                   'หมายเลขซีล',
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    fontSize: fontProvider.getScaledFontSize(12.0),
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1154,7 +1154,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               child: Text(
                 displayValue,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(14.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1183,7 +1183,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                 Text(
                   'น้ำหนักตู้',
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(9.0),
+                    fontSize: fontProvider.getScaledFontSize(12.0),
                     color: colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1205,7 +1205,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               child: Text(
                 displayValue,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(14.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1246,7 +1246,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                   Text(
                     'หมายเหตุ',
                     style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(9.0),
+                      fontSize: fontProvider.getScaledFontSize(12.0),
                       color: colors.warning,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1257,7 +1257,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
               Text(
                 remark,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(10.0),
+                  fontSize: fontProvider.getScaledFontSize(13.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w400,
                 ),
@@ -1585,7 +1585,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         Text(
           label,
           style: GoogleFonts.notoSansThai(
-            fontSize: fontProvider.getScaledFontSize(9.0),
+            fontSize: fontProvider.getScaledFontSize(12.0),
             color: colors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
@@ -1594,7 +1594,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         Text(
           value,
           style: GoogleFonts.notoSansThai(
-            fontSize: fontProvider.getScaledFontSize(11.0),
+            fontSize: fontProvider.getScaledFontSize(14.0),
             color: colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
@@ -1709,7 +1709,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         Text(
           alertType,
           style: GoogleFonts.notoSansThai(
-            fontSize: fontProvider.getScaledFontSize(9.0),
+            fontSize: fontProvider.getScaledFontSize(12.0),
             color: Colors.red[700],
             fontWeight: FontWeight.w500,
           ),
@@ -1718,7 +1718,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         Text(
           baseTime,
           style: GoogleFonts.notoSansThai(
-            fontSize: fontProvider.getScaledFontSize(11.0),
+            fontSize: fontProvider.getScaledFontSize(14.0),
             color: Colors.red,
             fontWeight: FontWeight.w600,
           ),
@@ -2585,7 +2585,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                           Text(
                             'คัดลอกทั้งหมด',
                             style: GoogleFonts.notoSansThai(
-                              fontSize: fontProvider.getScaledFontSize(11.0),
+                              fontSize: fontProvider.getScaledFontSize(14.0),
                               color: colors.success,
                               fontWeight: FontWeight.w600,
                             ),
@@ -2626,7 +2626,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                   Text(
                     label,
                     style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(11.0),
+                      fontSize: fontProvider.getScaledFontSize(14.0),
                       color: colors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -2651,7 +2651,7 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                             Text(
                               'คัดลอก',
                               style: GoogleFonts.notoSansThai(
-                                fontSize: fontProvider.getScaledFontSize(10.0),
+                                fontSize: fontProvider.getScaledFontSize(13.0),
                                 color: colors.primary,
                                 fontWeight: FontWeight.w500,
                               ),

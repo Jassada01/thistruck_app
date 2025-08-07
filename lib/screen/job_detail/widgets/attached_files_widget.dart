@@ -125,7 +125,7 @@ class AttachedFilesWidget extends StatelessWidget {
                   Text(
                     fileName,
                     style: TextStyle(
-                      fontSize: fontSizeProvider.getScaledFontSize(14),
+                      fontSize: fontSizeProvider.getScaledFontSize(16),
                       fontWeight: FontWeight.w500,
                       color: Colors.blue[700],
                     ),
@@ -143,7 +143,7 @@ class AttachedFilesWidget extends StatelessWidget {
                       child: Text(
                         documentType,
                         style: TextStyle(
-                          fontSize: fontSizeProvider.getScaledFontSize(11),
+                          fontSize: fontSizeProvider.getScaledFontSize(16),
                           color: Colors.orange[700],
                           fontWeight: FontWeight.w500,
                         ),
@@ -155,7 +155,7 @@ class AttachedFilesWidget extends StatelessWidget {
                     Text(
                       description,
                       style: TextStyle(
-                        fontSize: fontSizeProvider.getScaledFontSize(12),
+                        fontSize: fontSizeProvider.getScaledFontSize(15),
                         color: Colors.grey[600],
                       ),
                       maxLines: 2,
@@ -167,7 +167,7 @@ class AttachedFilesWidget extends StatelessWidget {
                     Text(
                       'อัปโหลดเมื่อ: ${_formatDateTime(createdAt)}',
                       style: TextStyle(
-                        fontSize: fontSizeProvider.getScaledFontSize(11),
+                        fontSize: fontSizeProvider.getScaledFontSize(16),
                         color: Colors.grey[500],
                       ),
                     ),

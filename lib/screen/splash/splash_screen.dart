@@ -159,11 +159,15 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Step 3: Setup notifications and request permission immediately
       await _updateProgress('กำลังตั้งค่าการแจ้งเตือน...', 0.5);
+      
       await NotificationService.createNotificationChannel();
       
       // Initialize notification service and request permission right away
       final notificationService = NotificationService();
       await notificationService.initializeNotifications();
+      
+      // Get FCM token
+      await notificationService.getDeviceToken();
       
       await Future.delayed(Duration(milliseconds: 800));
 
@@ -187,18 +191,14 @@ class _SplashScreenState extends State<SplashScreen>
             final checkResult = await ApiService.checkDeviceAndUpdateActive(deviceId);
             
             if (checkResult['success'] == true) {
-              print('✅ Device validated and last active updated');
-              
               // อัพเดท profile ใน Local Storage ถ้ามีข้อมูลใหม่
               if (checkResult['profile_data'] != null) {
                 await LocalStorage.saveProfile(checkResult['profile_data']);
-                print('✅ Profile updated from device check');
               }
             } else {
               // Device ไม่พบหรือ user inactive - ลบ profile และไปหน้า login
               if (checkResult['action'] == 'redirect_to_passcode_login') {
                 await LocalStorage.deleteProfile();
-                print('⚠️ Device validation failed: ${checkResult['message']}');
                 
                 // Navigate to login instead of dashboard
                 if (mounted) {
@@ -209,7 +209,6 @@ class _SplashScreenState extends State<SplashScreen>
             }
           }
         } catch (e) {
-          print('⚠️ Failed to check device: $e');
           // ไม่ให้ error นี้กระทบต่อการทำงานของ app
         }
       }
@@ -761,7 +760,7 @@ Future<String?> _getDeviceId() async {
       return iosInfo.identifierForVendor ?? 'unknown_ios_device';
     }
   } catch (e) {
-    print('Error getting device ID: $e');
+    // Error getting device ID
   }
   return null;
 }

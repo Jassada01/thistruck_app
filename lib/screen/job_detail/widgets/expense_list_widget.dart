@@ -167,7 +167,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                 Text(
                   'ค่าใช้จ่ายเพิ่มเติม',
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(13.0),
+                    fontSize: fontProvider.getScaledFontSize(16.0),
                     fontWeight: FontWeight.bold,
                     color: colors.textPrimary,
                   ),
@@ -189,7 +189,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                     Text(
                       'กำลังโหลดค่าใช้จ่ายเพิ่มเติม...',
                       style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(11.0),
+                        fontSize: fontProvider.getScaledFontSize(14.0),
                         color: colors.textSecondary,
                       ),
                     ),
@@ -202,7 +202,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                 Text(
                   'หมายเหตุ:',
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(12.0),
+                    fontSize: fontProvider.getScaledFontSize(15.0),
                     fontWeight: FontWeight.bold,
                     color: colors.textPrimary,
                   ),
@@ -211,7 +211,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                 Text(
                   costData['remark'],
                   style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(11.0),
+                    fontSize: fontProvider.getScaledFontSize(14.0),
                     color: colors.textSecondary,
                   ),
                 ),
@@ -243,7 +243,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                       child: Text(
                         description,
                         style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(11.0),
+                          fontSize: fontProvider.getScaledFontSize(14.0),
                           color: colors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -268,7 +268,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
               Text(
                 formattedAmount,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(11.0),
+                  fontSize: fontProvider.getScaledFontSize(14.0),
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),

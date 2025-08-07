@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'notification_service.dart';
+import '../models/notification_model.dart';
 
 class ApiService {
   // static const String baseUrl = 'http://127.0.0.1/thistruck/function/mobile';
-  static const String baseUrl = 'http://192.168.1.58/thistruck/function/mobile';
+  static const String baseUrl = 'http://192.168.1.47/thistruck/function/mobile';
   // static const String baseUrl = 'https://thistruck.app/function/mobile';
   static const String endpoint = '$baseUrl/mainFunction.php';
 
@@ -1381,6 +1382,259 @@ class ApiService {
           'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
         };
       }
+    }
+  }
+
+  // Get notifications for user (Function 27)
+  static Future<NotificationListResponse?> getNotifications({
+    required int mobileUserId,
+    int page = 1,
+    int limit = 20,
+    bool unreadOnly = false,
+  }) async {
+    try {
+      Map<String, String> requestData = {
+        'f': '27', // Function number for get notifications
+        'mobile_user_id': mobileUserId.toString(),
+        'page': page.toString(),
+        'limit': limit.toString(),
+        'unread_only': unreadOnly ? '1' : '0',
+      };
+
+      print('📤 Getting notifications for user $mobileUserId...');
+      print('📤 Request data: $requestData');
+      print('📤 Endpoint: $endpoint');
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Get notifications response: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        try {
+          // Remove BOM and trim whitespace
+          String cleanBody = response.body.replaceAll('\ufeff', '').trim();
+          print('📥 Clean response body: $cleanBody');
+          
+          Map<String, dynamic> result = jsonDecode(cleanBody);
+
+          if (result['status'] == 'success') {
+            return NotificationListResponse.fromJson(result);
+          } else {
+            print('❌ Get notifications failed: ${result['message']}');
+            return null;
+          }
+        } catch (e) {
+          print('❌ JSON decode error: $e');
+          return null;
+        }
+      } else {
+        print('❌ HTTP error: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('🔥 Get Notifications Error: $e');
+      return null;
+    }
+  }
+
+  // Mark notification as read (Function 28)
+  static Future<Map<String, dynamic>> markNotificationAsRead({
+    required int notificationId,
+    required String deviceId,
+  }) async {
+    try {
+      Map<String, String> requestData = {
+        'f': '28', // Function number for mark as read
+        'notification_id': notificationId.toString(),
+        'device_id': deviceId,
+      };
+
+      print('📤 Marking notification $notificationId as read...');
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Mark as read response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        try {
+          Map<String, dynamic> result = jsonDecode(response.body);
+
+          if (result['status'] == 'success') {
+            return {
+              'success': true,
+              'message': result['message'] ?? 'ทำเครื่องหมายอ่านแล้วสำเร็จ',
+            };
+          } else {
+            return {
+              'success': false,
+              'message': result['message'] ?? 'ไม่สามารถทำเครื่องหมายอ่านแล้วได้',
+            };
+          }
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'เกิดข้อผิดพลาดในการประมวลผลข้อมูล',
+          };
+        }
+      } else {
+        return {'success': false, 'message': 'เซิร์ฟเวอร์ไม่ตอบสนอง'};
+      }
+    } catch (e) {
+      print('🔥 Mark as Read Error: $e');
+      return {
+        'success': false,
+        'message': 'เกิดข้อผิดพลาดในการทำเครื่องหมายอ่านแล้ว',
+      };
+    }
+  }
+
+  // Get unread notification count (Function 29)
+  static Future<int> getUnreadNotificationCount(int mobileUserId) async {
+    try {
+      Map<String, String> requestData = {
+        'f': '29', // Function number for unread count
+        'mobile_user_id': mobileUserId.toString(),
+      };
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        try {
+          // Properly decode UTF-8 response and clean any BOM
+          String responseBody = utf8.decode(response.bodyBytes);
+          String cleanBody = responseBody.trim();
+          
+          // Remove BOM if present
+          if (cleanBody.startsWith('\uFEFF')) {
+            cleanBody = cleanBody.substring(1);
+          }
+          
+          print('📝 Raw response: "${response.body}"');
+          print('📝 Clean response: "$cleanBody"');
+          
+          Map<String, dynamic> result = jsonDecode(cleanBody);
+
+          if (result['status'] == 'success') {
+            int count = int.parse(result['unread_count'].toString());
+            print('✅ Successfully parsed unread count: $count');
+            return count;
+          } else {
+            print('⚠️ API returned non-success status: ${result['status']}');
+          }
+        } catch (e) {
+          print('❌ Parse unread count error: $e');
+          print('📝 Response body: "${response.body}"');
+          print('📝 Response body bytes: ${response.bodyBytes}');
+        }
+      } else {
+        print('❌ HTTP Error: ${response.statusCode}');
+        print('📝 Response body: "${response.body}"');
+      }
+    } catch (e) {
+      print('🔥 Get Unread Count Error: $e');
+    }
+    return 0;
+  }
+
+  // Get Mobile User by Driver ID (Function 10)
+  static Future<Map<String, dynamic>> getMobileUserByDriverId(int driverId) async {
+    try {
+      Map<String, String> requestData = {
+        'f': '10', // Function number for getMobileUserByDriverId
+        'driver_id': driverId.toString(),
+      };
+
+      print('📤 Getting mobile user data for driver ID: $driverId');
+      print('📤 Request data: $requestData');
+
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: requestData,
+      ).timeout(Duration(seconds: 10));
+
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Properly decode UTF-8 response and clean any BOM
+        String responseBody = utf8.decode(response.bodyBytes);
+        String cleanBody = responseBody.trim();
+        
+        // Remove BOM if present
+        if (cleanBody.startsWith('\uFEFF')) {
+          cleanBody = cleanBody.substring(1);
+        }
+
+        try {
+          final Map<String, dynamic> result = json.decode(cleanBody);
+          
+          if (result['status'] == 'success') {
+            print('✅ Successfully got mobile user data');
+            return {
+              'success': true,
+              'data': result['data'],
+              'message': result['message'] ?? 'Success',
+            };
+          } else {
+            print('⚠️ API returned non-success status: ${result['status']}');
+            return {
+              'success': false,
+              'data': null,
+              'message': result['message'] ?? 'Failed to get mobile user data',
+            };
+          }
+        } catch (e) {
+          print('❌ Parse mobile user data error: $e');
+          return {
+            'success': false,
+            'data': null,
+            'message': 'Failed to parse response data',
+          };
+        }
+      } else {
+        print('❌ HTTP Error: ${response.statusCode}');
+        return {
+          'success': false,
+          'data': null,
+          'message': 'HTTP Error: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('🔥 Get Mobile User By Driver ID Error: $e');
+      return {
+        'success': false,
+        'data': null,
+        'message': 'Network error: $e',
+      };
     }
   }
 }
