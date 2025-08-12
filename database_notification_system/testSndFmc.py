@@ -231,7 +231,7 @@ def initialize_firebase():
     """เริ่มต้นการเชื่อมต่อกับ Firebase Admin SDK"""
     try:
         if not firebase_admin._apps:
-            cred = credentials.Certificate("keyfile.json")
+            cred = credentials.Certificate("/usr/myPi/keyfile.json")
             firebase_admin.initialize_app(cred)
             print("✅ Firebase App initialized successfully!")
             return True

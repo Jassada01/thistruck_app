@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screen/splash/splash_screen.dart';
 import 'screen/terms/terms_screen.dart';
 import 'screen/auth/login_screen.dart';
@@ -44,7 +45,17 @@ class MyApp extends StatelessWidget {
         builder: (context, fontProvider, child) {
           return MaterialApp(
             navigatorKey: NotificationNavigationService.navigatorKey,
-            title: 'แอปพลิเคชัน Flutter Dashboard',
+            title: 'This Truck',
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('th', 'TH'),
+              Locale('en', 'US'),
+            ],
+            locale: const Locale('th', 'TH'),
             theme: ThemeData(
               primarySwatch: Colors.blue,
               useMaterial3: true,

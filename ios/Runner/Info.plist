@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Thistruck App</string>
+	<string>This Truck</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>thistruck_app</string>
+	<string>This Truck</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,9 +27,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Need camera access to take pictures</string>
+	<string>แอปต้องการใช้กล้องเพื่อถ่ายรูปรถบรรทุก สินค้า หรือสถานที่จัดส่ง เช่น ถ่ายรูปสินค้าเสียหาย หรือหลักฐานการส่งมอบ</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Need library access to upload images</string>
+	<string>แอปต้องการเข้าถึงรูปภาพเพื่ออัปโหลดรูปรถบรรทุก สินค้า หรือเอกสาร เช่น รูปใบขนส่ง หรือรูปหลักฐานการส่งมอบ</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>แอปต้องการบันทึกรูปภาพเช่น บันทึกรูปรายงานงาน หรือเอกสารสำคัญลงในคลังภาพ</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>ต้องการสิทธิ์เข้าถึงตำแหน่งเพื่อระบุที่ตั้งของรถและการทำงาน</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

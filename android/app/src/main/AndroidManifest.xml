@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     
     <application
-        android:label="thistruck_app"
+        android:label="This Truck"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         

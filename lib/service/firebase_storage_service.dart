@@ -98,6 +98,154 @@ class FirebaseStorageService {
     }
   }
 
+  /// Upload fuel record image to Firebase Storage
+  static Future<Map<String, dynamic>> uploadFuelImage({
+    required File imageFile,
+    required String driverId,
+  }) async {
+    File? fileToUpload;
+    
+    try {
+      print('🔥 FirebaseStorageService.uploadFuelImage ENTRY');
+      print('📁 ImageFile: ${imageFile.path}');
+      print('👤 DriverId: $driverId');
+      print('📏 Original file size: ${imageFile.lengthSync()} bytes (${getFileSizeString(imageFile.lengthSync())})');
+      print('📄 File exists: ${imageFile.existsSync()}');
+      
+      // Compress image before upload
+      print('🔧 Compressing image...');
+      final File? compressedFile = await compressImage(imageFile);
+      
+      if (compressedFile == null) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถบีบอัดรูปภาพได้ กรุณาเลือกรูปภาพที่มีขนาดเล็กกว่า',
+        };
+      }
+      
+      // Use compressed file for upload
+      fileToUpload = compressedFile;
+      print('📏 Final file size for upload: ${fileToUpload.lengthSync()} bytes (${getFileSizeString(fileToUpload.lengthSync())})');
+      print('📄 Compressed file exists: ${fileToUpload.existsSync()}');
+      
+      // Generate unique filename
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String fileExtension = path.extension(fileToUpload.path);
+      final String fileName = 'fuel_${driverId}_$timestamp$fileExtension';
+      
+      print('🔥 Generated filename: $fileName');
+      print('🔥 File extension: $fileExtension');
+      
+      // Create reference to Firebase Storage
+      final Reference storageRef = _storage
+          .ref()
+          .child('fuel_images')
+          .child(fileName);
+
+      print('🔥 Firebase Storage reference created');
+      print('📤 Starting fuel image upload...');
+      print('📁 File path: ${fileToUpload.path}');
+      print('🏷️ Target filename: $fileName');
+
+      // Upload compressed file
+      print('🔥 About to create UploadTask');
+      final UploadTask uploadTask = storageRef.putFile(
+        fileToUpload,
+        SettableMetadata(
+          contentType: _getContentType(fileExtension),
+          customMetadata: {
+            'driver_id': driverId,
+            'uploaded_at': DateTime.now().toIso8601String(),
+            'uploaded_by': 'mobile_app',
+            'type': 'fuel_record',
+          },
+        ),
+      );
+
+      print('🔥 UploadTask created, waiting for completion...');
+      // Wait for upload to complete
+      final TaskSnapshot snapshot = await uploadTask;
+      print('🔥 UploadTask completed with state: ${snapshot.state}');
+      
+      if (snapshot.state == TaskState.success) {
+        // Get download URL
+        final String downloadUrl = await storageRef.getDownloadURL();
+        
+        print('✅ Upload successful!');
+        print('🔗 Download URL: $downloadUrl');
+        
+        // Clean up compressed file if it's different from original
+        if (fileToUpload.path != imageFile.path) {
+          try {
+            await fileToUpload.delete();
+            print('🧹 Cleaned up compressed file');
+          } catch (e) {
+            print('⚠️ Could not delete compressed file: $e');
+          }
+        }
+        
+        return {
+          'success': true,
+          'downloadUrl': downloadUrl,
+          'fileName': fileName,
+          'filePath': 'fuel_images/$fileName',
+          'fileSize': snapshot.totalBytes,
+        };
+      } else {
+        print('❌ Upload failed with state: ${snapshot.state}');
+        
+        // Clean up compressed file if upload failed
+        if (fileToUpload.path != imageFile.path) {
+          try {
+            await fileToUpload.delete();
+            print('🧹 Cleaned up compressed file after failed upload');
+          } catch (e) {
+            print('⚠️ Could not delete compressed file: $e');
+          }
+        }
+        
+        return {
+          'success': false,
+          'message': 'การอัพโหลดไม่สำเร็จ',
+        };
+      }
+    } catch (e) {
+      print('❌ Error uploading fuel image: $e');
+      
+      // Clean up compressed file in case of error
+      try {
+        if (fileToUpload != null && fileToUpload.path != imageFile.path) {
+          await fileToUpload.delete();
+          print('🧹 Cleaned up compressed file after error');
+        }
+      } catch (cleanupError) {
+        print('⚠️ Could not delete compressed file: $cleanupError');
+      }
+      
+      if (e.toString().contains('network-request-failed')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเครือข่ายได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต',
+        };
+      } else if (e.toString().contains('unauthorized')) {
+        return {
+          'success': false,
+          'message': 'ไม่มีสิทธิ์ในการอัพโหลดไฟล์',
+        };
+      } else if (e.toString().contains('storage/object-not-found')) {
+        return {
+          'success': false,
+          'message': 'ไม่พบโฟลเดอร์สำหรับจัดเก็บไฟล์',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'เกิดข้อผิดพลาดในการอัพโหลด: $e',
+        };
+      }
+    }
+  }
+
   /// Upload profile image to Firebase Storage
   static Future<Map<String, dynamic>> uploadProfileImage({
     required File imageFile,

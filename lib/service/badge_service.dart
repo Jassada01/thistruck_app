@@ -1,4 +1,4 @@
-import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BadgeService {
@@ -48,13 +48,13 @@ class BadgeService {
   /// Internal method to update app icon badge
   static Future<void> _updateAppIconBadge(int count) async {
     try {
-      final isSupported = await FlutterAppBadger.isAppBadgeSupported();
+      final isSupported = await AppBadgePlus.isSupported();
       
       if (isSupported) {
         if (count > 0) {
-          await FlutterAppBadger.updateBadgeCount(count);
+          await AppBadgePlus.updateBadge(count);
         } else {
-          await FlutterAppBadger.removeBadge();
+          await AppBadgePlus.updateBadge(0);
         }
       }
     } catch (e) {
@@ -94,7 +94,7 @@ class BadgeService {
   /// Check if badge is supported on current platform
   static Future<bool> isBadgeSupported() async {
     try {
-      return await FlutterAppBadger.isAppBadgeSupported();
+      return await AppBadgePlus.isSupported();
     } catch (e) {
       return false;
     }

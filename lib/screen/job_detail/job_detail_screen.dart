@@ -95,6 +95,16 @@ class _JobDetailScreenState extends State<JobDetailScreen>
           }
         }
 
+        // ตรวจสอบสิทธิ์เข้าถึงหน้านี้
+        final accessCheck = await _checkPageAccess(tripData);
+        if (!accessCheck['hasAccess']) {
+          setState(() {
+            _isLoading = false;
+          });
+          _showAccessDeniedAndNavigateBack(accessCheck['message']);
+          return;
+        }
+
         setState(() {
           _tripData = tripData;
           _isLoading = false;
@@ -119,6 +129,119 @@ class _JobDetailScreenState extends State<JobDetailScreen>
         _isLoading = false;
       });
     }
+  }
+
+  /// ตรวจสอบสิทธิ์เข้าถึงหน้านี้
+  Future<Map<String, dynamic>> _checkPageAccess(Map<String, dynamic>? tripData) async {
+    if (tripData == null) {
+      return {
+        'hasAccess': false,
+        'message': 'ไม่พบข้อมูลงาน'
+      };
+    }
+
+    // 1. ตรวจสอบสถานะงาน - ถ้าเป็น "ยกเลิก" ไม่ให้เข้าถึง
+    final status = tripData['status']?.toString() ?? '';
+    if (_isJobCancelled(status)) {
+      return {
+        'hasAccess': false,
+        'message': 'งานนี้ถูกยกเลิกแล้ว คุณไม่สามารถเข้าถึงได้'
+      };
+    }
+
+    // 2. ตรวจสอบ Driver ID - ต้องตรงกับผู้ใช้ที่ล็อกอินอยู่
+    try {
+      final userData = await LocalStorage.getProfile();
+      final currentDriverId = userData?['driver_id']?.toString();
+      final tripDriverId = tripData['driver_id']?.toString();
+
+      if (currentDriverId == null) {
+        return {
+          'hasAccess': false,
+          'message': 'ไม่พบข้อมูลผู้ใช้ กรุณาล็อกอินใหม่'
+        };
+      }
+
+      if (tripDriverId == null || currentDriverId != tripDriverId) {
+        return {
+          'hasAccess': false,
+          'message': 'คุณไม่มีสิทธิ์เข้าถึงงานนี้'
+        };
+      }
+
+      // ผ่านการตรวจสอบทั้งหมด
+      return {
+        'hasAccess': true,
+        'message': ''
+      };
+
+    } catch (e) {
+      return {
+        'hasAccess': false,
+        'message': 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์'
+      };
+    }
+  }
+
+  /// ตรวจสอบว่างานถูกยกเลิกหรือไม่
+  bool _isJobCancelled(String status) {
+    final statusLower = status.toLowerCase();
+    return statusLower.contains('ยกเลิก') ||
+           statusLower.contains('cancelled') ||
+           statusLower.contains('cancel');
+  }
+
+  /// แสดงข้อความแจ้งเตือนและย้อนกลับไปหน้าก่อนหน้า
+  void _showAccessDeniedAndNavigateBack(String message) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_outline, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'ไม่มีสิทธิ์เข้าถึง',
+              style: GoogleFonts.notoSansThai(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.notoSansThai(fontSize: 16),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // ปิด dialog
+              Navigator.of(context).pop(); // ย้อนกลับไปหน้าก่อนหน้า
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'ตกลง',
+              style: GoogleFonts.notoSansThai(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _formatDateTime(String? dateTime) {
@@ -2116,14 +2239,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                                         return Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(
-                                              Icons.assignment_outlined,
-                                              size: 14,
-                                              color: Colors.white.withValues(
-                                                alpha: 0.8,
-                                              ),
-                                            ),
-                                            SizedBox(width: 4),
                                             Flexible(
                                               child: Text(
                                                 '${_tripData!['job_no']}',
@@ -2167,14 +2282,6 @@ class _JobDetailScreenState extends State<JobDetailScreen>
                                         return Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(
-                                              Icons.route_outlined,
-                                              size: 14,
-                                              color: Colors.white.withValues(
-                                                alpha: 0.8,
-                                              ),
-                                            ),
-                                            SizedBox(width: 4),
                                             Flexible(
                                               child: Text(
                                                 '${_tripData?['tripNo'] ?? _tripData?['id']}',

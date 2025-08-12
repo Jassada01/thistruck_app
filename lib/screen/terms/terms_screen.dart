@@ -75,10 +75,10 @@ class _TermsScreenState extends State<TermsScreen> {
                 textAlign: TextAlign.center,
               ),
               
-              SizedBox(height: 24),
+              SizedBox(height: 16),
               
               Text(
-                'แอปพลิเคชัน "This Truck" สำหรับระบบจัดการรถขนส่ง',
+                'แอปพลิเคชัน "This Truck" ระบบบริหารจัดการงานขนส่งตู้คอนเทนเนอร์',
                 style: GoogleFonts.notoSansThai(
                   fontSize: fontProvider.getScaledFontSize(16.0),
                   fontWeight: FontWeight.w600,
@@ -87,68 +87,188 @@ class _TermsScreenState extends State<TermsScreen> {
                 textAlign: TextAlign.center,
               ),
 
+              SizedBox(height: 8),
+              
+              Text(
+                'วันที่มีผลบังคับใช้: ${_getCurrentDate()}',
+                style: GoogleFonts.notoSansThai(
+                  fontSize: fontProvider.getScaledFontSize(14.0),
+                  color: _textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
               SizedBox(height: 32),
 
               // Terms content
               _buildSection(
-                '1. การเก็บรวบรวมข้อมูลส่วนบุคคล',
-                'เราจะเก็บรวบรวมข้อมูลส่วนบุคคลของท่านเพื่อการให้บริการที่ดีที่สุด ดังนี้:\n\n'
-                '• ข้อมูลส่วนตัว: ชื่อ-นามสกุล, เบอร์โทรศัพท์\n'
-                '• ข้อมูลการใช้งาน: ประวัติการเข้าใช้งานระบบ\n'
-                '• ข้อมูลอุปกรณ์: รุ่นโทรศัพท์, ระบบปฏิบัติการ, หมายเลขอุปกรณ์\n'
-                '• ข้อมูลตำแหน่ง: เพื่อติดตามเส้นทางการขนส่ง (เฉพาะเมื่อเปิดแอป)',
+                '1. ข้อมูลทั่วไป',
+                'This Truck เป็นแอปพลิเคชันที่พัฒนาโดย บริษัท เจโซลูชั่นส์เน็กซ์ จำกัด เพื่อใช้ในการบริหารจัดการงานขนส่งตู้คอนเทนเนอร์ โดยเฉพาะสำหรับคนขับรถ เจ้าหน้าที่ และผู้ควบคุมงานขนส่ง\n\n'
+                'การใช้งานแอปพลิเคชันนี้ ถือว่าท่านยอมรับข้อตกลงและเงื่อนไขทั้งหมดที่ระบุไว้',
                 fontProvider,
               ),
 
               _buildSection(
-                '2. วัตถุประสงค์ในการใช้ข้อมูล',
-                'ข้อมูลที่เก็บรวบรวมจะนำไปใช้เพื่อ:\n\n'
-                '• จัดการและติดตามงานขนส่ง\n'
-                '• ส่งการแจ้งเตือนเกี่ยวกับงาน\n'
-                '• ปรับปรุงคุณภาพการให้บริการ\n'
-                '• รายงานสถิติการใช้งานระบบ\n'
-                '• รักษาความปลอดภัยของระบบ',
+                '2. การเก็บรวบรวมข้อมูลส่วนบุคคล',
+                'เราจะเก็บรวบรวมข้อมูลดังต่อไปนี้:\n\n'
+                '2.1 ข้อมูลบัญชีผู้ใช้:\n'
+                '• ชื่อ-นามสกุล, หมายเลขโทรศัพท์\n'
+                '• รหัสผ่านแอป (Passcode) ที่ท่านตั้งไว้\n'
+                '• รูปโปรไฟล์ (หากมีการอัปโหลด)\n\n'
+                '2.2 ข้อมูลการทำงาน:\n'
+                '• ข้อมูลรถที่รับผิดชอบ (ทะเบียน, ประเภทรถ)\n'
+                '• รายการงานขนส่งที่ได้รับมอบหมาย\n'
+                '• สถานะการทำงาน และรายงานผลงาน\n'
+                '• ข้อมูลการเติมน้ำมันและค่าใช้จ่าย\n\n'
+                '2.3 ข้อมูลตำแหน่ง: ข้อมูล GPS เมื่อจำเป็นสำหรับการปฏิบัติงาน\n\n'
+                '2.4 ข้อมูลอุปกรณ์:\n'
+                '• ข้อมูลโทรศัพท์มือถือ (ยี่ห้อ, รุ่น, OS)\n'
+                '• Token สำหรับการส่งแจ้งเตือน',
                 fontProvider,
               ),
 
               _buildSection(
-                '3. การแจ้งเตือน (Push Notifications)',
-                'แอปพลิเคชันจะขอสิทธิ์ส่งการแจ้งเตือนเพื่อ:\n\n'
-                '• แจ้งงานใหม่ที่ได้รับมอบหมาย\n'
-                '• แจ้งการเปลี่ยนแปลงสถานะงาน\n'
-                '• แจ้งข้อมูลสำคัญจากระบบ\n\n'
-                'ท่านสามารถปิดการแจ้งเตือนได้ในการตั้งค่าของอุปกรณ์',
+                '3. วัตถุประสงค์การใช้ข้อมูล',
+                'ข้อมูลที่เก็บรวบรวมจะใช้เพื่อ:\n\n'
+                '3.1 การจัดการงาน:\n'
+                '• มอบหมายงานขนส่งและติดตามความคืบหน้า\n'
+                '• บันทึกและรายงานผลการทำงาน\n'
+                '• จัดการข้อมูลรถและคนขับ\n\n'
+                '3.2 การสื่อสาร:\n'
+                '• ส่งแจ้งเตือนงานใหม่และการเปลี่ยนแปลง\n'
+                '• ประชาสัมพันธ์ข้อมูลสำคัญจากบริษัท\n'
+                '• ติดต่อสื่อสารในเรื่องงาน\n\n'
+                '3.3 การปรับปรุงบริการ:\n'
+                '• วิเคราะห์การใช้งานเพื่อพัฒนาระบบ\n'
+                '• รายงานสถิติและข้อมูลเชิงวิเคราะห์\n'
+                '• แก้ไขปัญหาและข้อบกพร่อง\n\n'
+                '3.4 ความปลอดภัย:\n'
+                '• ตรวจสอบตัวตนผู้ใช้งาน\n'
+                '• ป้องกันการใช้งานโดยไม่ได้รับอนุญาต',
+                fontProvider,
+              ),
+
+
+              _buildSection(
+                '4. การแจ้งเตือน (Push Notifications)',
+                '4.1 ประเภทการแจ้งเตือน:\n'
+                '• งานใหม่ที่ได้รับมอบหมาย\n'
+                '• การเปลี่ยนแปลงรายละเอียดงาน\n'
+                '• การอนุมัติเอกสารและรายงาน\n'
+                '• ข้อมูลสำคัญจากฝ่ายจัดการ\n'
+                '• การแจ้งเตือนด้านความปลอดภัย\n\n'
+                '4.2 การจัดการการแจ้งเตือน:\n'
+                '• ท่านสามารถเปิด/ปิดการแจ้งเตือนได้\n'
+                '• สามารถเลือกประเภทการแจ้งเตือนที่ต้องการ\n'
+                '• การตั้งค่าแจ้งเตือนไม่ส่งผลต่อการทำงาน',
                 fontProvider,
               ),
 
               _buildSection(
-                '4. ความปลอดภัยของข้อมูล',
-                'เรามีมาตรการรักษาความปลอดภัยของข้อมูล:\n\n'
-                '• เข้ารหัสข้อมูลในการส่งผ่าน (SSL/TLS)\n'
-                '• จัดเก็บข้อมูลในเซิร์ฟเวอร์ที่ปลอดภัย\n'
-                '• จำกัดการเข้าถึงข้อมูลเฉพาะผู้ที่มีสิทธิ์\n'
-                '• สำรองข้อมูลเป็นประจำ',
+                '5. ความปลอดภัยและการเก็บรักษาข้อมูล',
+                '5.1 มาตรการรักษาความปลอดภัย:\n'
+                '• เข้ารหัสข้อมูลด้วย SSL/TLS 256-bit\n'
+                '• เซิร์ฟเวอร์มีการสำรองข้อมูลทุก 24 ชั่วโมง\n'
+                '• ระบบตรวจจับการเข้าถึงผิดปกติ\n'
+                '• การยืนยันตัวตนด้วย Passcode\n\n'
+                '5.2 ระยะเวลาเก็บรักษาข้อมูล:\n'
+                '• ข้อมูลงาน: เก็บไว้ 3 ปี เพื่อการอ้างอิง\n'
+                '• ข้อมูลตำแหน่ง: ลบอัตโนมัติเมื่อไม่จำเป็น\n'
+                '• ข้อมูลส่วนตัว: เก็บตลอดระยะเวลาการทำงาน\n'
+                '• รูปภาพ: เก็บไว้ 1 ปี หลังจากส่งงาน',
                 fontProvider,
               ),
 
               _buildSection(
-                '5. สิทธิของผู้ใช้งาน',
-                'ท่านมีสิทธิ์ในการ:\n\n'
-                '• เข้าถึงและตรวจสอบข้อมูลส่วนตัว\n'
-                '• ขอแก้ไขข้อมูลที่ไม่ถูกต้อง\n'
-                '• ขอลบข้อมูลส่วนตัว\n'
-                '• ถอนความยินยอมการใช้ข้อมูล\n'
-                '• ร้องเรียนกรณีการใช้ข้อมูลผิดวัตถุประสงค์',
+                '6. สิทธิของผู้ใช้งาน',
+                'ตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล ท่านมีสิทธิ:\n\n'
+                '6.1 สิทธิในการเข้าถึง:\n'
+                '• ดูข้อมูลส่วนตัวที่เราเก็บรักษาไว้\n'
+                '• ขอสำเนาข้อมูลในรูปแบบที่อ่านได้\n\n'
+                '6.2 สิทธิในการแก้ไข:\n'
+                '• แก้ไขข้อมูลส่วนตัวที่ไม่ถูกต้อง\n'
+                '• อัปเดตข้อมูลให้เป็นปัจจุบัน\n\n'
+                '6.3 สิทธิในการลบข้อมูล:\n'
+                '• ขอลบข้อมูลส่วนตัว (ยกเว้นข้อมูลที่กฎหมายกำหนด)\n'
+                '• ยกเลิกบัญชีผู้ใช้งานโดยแจ้งกับเจ้าหน้าที่\n\n'
+                '6.4 สิทธิในการคัดค้าน:\n'
+                '• คัดค้านการใช้ข้อมูลในบางวัตถุประสงค์\n'
+                '• ถอนความยินยอม (อาจส่งผลต่อการใช้งาน)',
                 fontProvider,
               ),
 
               _buildSection(
-                '6. การติดต่อ',
-                'หากมีข้อสงสัยเกี่ยวกับการใช้ข้อมูลส่วนบุคคล สามารถติดต่อได้ที่:\n\n'
-                'บริษัท JSolutionsNext\n'
-                'อีเมล: support@jsolutionsnext.com\n'
-                'โทรศัพท์: 02-XXX-XXXX',
+                '7. ข้อจำกัดการใช้งาน',
+                '7.1 ห้ามใช้แอปพลิเคชันเพื่อ:\n'
+                '• กิจกรรมที่ผิดกฎหมาย\n'
+                '• ส่งข้อมูลเท็จหรือหลอกลวง\n'
+                '• รบกวนหรือทำอันตรายต่อระบบ\n'
+                '• แชร์บัญชีให้บุคคลอื่นใช้งาน\n\n'
+                '7.2 การละเมิดข้อตกลง:\n'
+                '• บัญชีอาจถูกระงับหรือยกเลิก\n'
+                '• ดำเนินการทางกฎหมาย (หากจำเป็น)\n'
+                '• แจ้งหน่วยงานที่เกี่ยวข้อง',
                 fontProvider,
+              ),
+
+              _buildSection(
+                '8. การแก้ไขข้อตกลง',
+                '8.1 การปรับปรุงข้อตกลง:\n'
+                '• บริษัทสงวนสิทธิ์แก้ไขข้อตกลงได้ตามความเหมาะสม\n'
+                '• จะแจ้งให้ทราบล่วงหน้าอย่างน้อย 30 วัน\n'
+                '• การใช้งานต่อหลังการแจ้ง ถือว่ายอมรับข้อตกลงใหม่\n\n'
+                '8.2 วิธีการแจ้ง:\n'
+                '• แจ้งเตือนผ่านแอปพลิเคชัน\n'
+                '• ประกาศในเว็บไซต์บริษัท',
+                fontProvider,
+              ),
+
+              _buildSection(
+                '9. การติดต่อและร้องเรียน',
+                '9.1 ติดต่อเรื่องข้อมูลส่วนบุคคล:\n'
+                'บริษัท เจโซลูชั่นส์เน็กซ์ จำกัด\n'
+                'อีเมล: jassadaporn@jsolutionsnext.com\n'
+                'โทรศัพท์: 091-872-1062\n'
+                'เวลาติดต่อ: จันทร์-ศุกร์ 08:00-17:00 น.\n\n'
+                '9.2 การร้องเรียน:\n'
+                '• กรอกแบบฟอร์มร้องเรียนที่เว็บไซต์\n'
+                '• ส่งอีเมลพร้อมระบุรายละเอียด\n'
+                '• โทรติดต่อในเวลาทำการ\n\n'
+                '9.3 ระยะเวลาตอบกลับ: ภายใน 15 วันทำการ',
+                fontProvider,
+              ),
+
+              SizedBox(height: 32),
+
+              // Version and effective date
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'ข้อตกลงฉบับนี้มีผลบังคับใช้ตั้งแต่วันที่ ${_getCurrentDate()}',
+                      style: GoogleFonts.notoSansThai(
+                        fontSize: fontProvider.getScaledFontSize(12.0),
+                        color: _textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'เวอร์ชัน 2.0.0',
+                      style: GoogleFonts.notoSansThai(
+                        fontSize: fontProvider.getScaledFontSize(11.0),
+                        color: _textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
 
               SizedBox(height: 32),
@@ -157,9 +277,9 @@ class _TermsScreenState extends State<TermsScreen> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _primaryColor.withOpacity(0.1),
+                  color: _primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _primaryColor.withOpacity(0.3)),
+                  border: Border.all(color: _primaryColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,11 +292,12 @@ class _TermsScreenState extends State<TermsScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'การกด "ยอมรับ" ถือว่าท่านได้อ่านและยินยอมให้เราเก็บรวบรวมและใช้ข้อมูลของท่านตามเงื่อนไขที่ระบุไว้ข้างต้น',
+                        'การกด "ยอมรับและเริ่มใช้งาน" หมายความว่าท่านได้อ่านและเข้าใจข้อตกลงทั้งหมด และยินยอมให้เราดำเนินการตามที่ระบุไว้ข้างต้น',
                         style: GoogleFonts.notoSansThai(
                           fontSize: fontProvider.getScaledFontSize(14.0),
                           color: _primaryColor,
                           fontWeight: FontWeight.w500,
+                          height: 1.4,
                         ),
                       ),
                     ),
@@ -196,12 +317,19 @@ class _TermsScreenState extends State<TermsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: GoogleFonts.notoSansThai(
-            fontSize: fontProvider.getScaledFontSize(18.0),
-            fontWeight: FontWeight.bold,
-            color: _textPrimary,
+        Container(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: _primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            title,
+            style: GoogleFonts.notoSansThai(
+              fontSize: fontProvider.getScaledFontSize(16.0),
+              fontWeight: FontWeight.bold,
+              color: _primaryColor,
+            ),
           ),
         ),
         SizedBox(height: 12),
@@ -216,6 +344,10 @@ class _TermsScreenState extends State<TermsScreen> {
         SizedBox(height: 24),
       ],
     );
+  }
+
+  String _getCurrentDate() {
+    return '8 สิงหาคม 2568';
   }
 
   @override
@@ -253,7 +385,7 @@ class _TermsScreenState extends State<TermsScreen> {
               color: _surfaceColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: Offset(0, -2),
                 ),
@@ -299,7 +431,7 @@ class _TermsScreenState extends State<TermsScreen> {
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'ข้าพเจ้าได้อ่านและเข้าใจข้อตกลงและเงื่อนไขการใช้งาน และยินยอมให้เก็บรวบรวมและใช้ข้อมูลส่วนบุคคลตามที่ระบุไว้',
+                                'ข้าพเจ้าได้อ่านและเข้าใจข้อตกลงและเงื่อนไขการใช้งานแล้ว และยินยอมตามวัตถุประสงค์ที่ระบุไว้',
                                 style: GoogleFonts.notoSansThai(
                                   fontSize: fontProvider.getScaledFontSize(14.0),
                                   color: _textPrimary,
@@ -333,7 +465,7 @@ class _TermsScreenState extends State<TermsScreen> {
                         boxShadow: _isAccepted
                             ? [
                                 BoxShadow(
-                                  color: _primaryColor.withOpacity(0.3),
+                                  color: _primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 15,
                                   offset: Offset(0, 5),
                                 ),

@@ -23,6 +23,12 @@ class _MapModalWidgetState extends State<MapModalWidget> {
   GoogleMapController? _mapController;
 
   @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = app_theme_config.AppColorScheme.light();
     final locationName = widget.location['location_name'] ?? 'ไม่ระบุชื่อสถานที่';
@@ -109,7 +115,11 @@ class _MapModalWidgetState extends State<MapModalWidget> {
                           onPressed: () {
                             _openExternalMap(context, widget.location);
                           },
-                          icon: Icon(Icons.open_in_new, color: colors.primary),
+                          icon: Image.asset(
+                            'assets/images/google_map.png',
+                            width: 40,
+                            height: 40,
+                          ),
                           tooltip: 'เปิด Google Maps',
                           constraints: BoxConstraints(
                             minWidth: 32,

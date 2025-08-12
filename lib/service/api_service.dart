@@ -7,8 +7,8 @@ import '../models/notification_model.dart';
 
 class ApiService {
   // static const String baseUrl = 'http://127.0.0.1/thistruck/function/mobile';
-  static const String baseUrl = 'http://192.168.1.47/thistruck/function/mobile';
-  // static const String baseUrl = 'https://thistruck.app/function/mobile';
+  // static const String baseUrl = 'http://192.168.1.47/thistruck/function/mobile';
+  static const String baseUrl = 'https://thistruck.app/function/mobile';
   static const String endpoint = '$baseUrl/mainFunction.php';
 
   // Check network connectivity
@@ -193,7 +193,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('💥 Network Error: $e');
 
       if (e.toString().contains('TimeoutException')) {
         return {'success': false, 'message': 'การเชื่อมต่อใช้เวลานานเกินไป'};
@@ -499,7 +498,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('💥 Network Error: $e');
 
       if (e.toString().contains('TimeoutException')) {
         return {'success': false, 'message': 'การเชื่อมต่อใช้เวลานานเกินไป'};
@@ -568,7 +566,6 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('💥 Network Error: $e');
 
       if (e.toString().contains('TimeoutException')) {
         return {'success': false, 'message': 'การเชื่อมต่อใช้เวลานานเกินไป'};
@@ -1564,6 +1561,94 @@ class ApiService {
     return 0;
   }
 
+  // Get Active Announcements for Drivers (Function 30)
+  static Future<Map<String, dynamic>> getActiveAnnouncementsForDrivers() async {
+    try {
+      Map<String, String> requestData = {
+        'f': '30', // Function number for getActiveAnnouncementsForDrivers
+      };
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        try {
+          // Properly decode UTF-8 response and clean any BOM
+          String responseBody = utf8.decode(response.bodyBytes);
+          String cleanBody = responseBody.trim();
+          
+          // Remove BOM if present
+          if (cleanBody.startsWith('\uFEFF')) {
+            cleanBody = cleanBody.substring(1);
+          }
+          
+          Map<String, dynamic> result = jsonDecode(cleanBody);
+
+          if (result['status'] == 'success') {
+            return {
+              'success': true,
+              'announcements': result['announcements'] ?? [],
+              'total_count': result['total_count'] ?? 0,
+            };
+          } else {
+            return {
+              'success': false,
+              'message': result['message'] ?? 'ไม่สามารถดึงข้อมูลประกาศได้',
+              'announcements': [],
+              'total_count': 0,
+            };
+          }
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'เกิดข้อผิดพลาดในการประมวลผลข้อมูล',
+            'announcements': [],
+            'total_count': 0,
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'เซิร์ฟเวอร์ไม่ตอบสนอง (${response.statusCode})',
+          'announcements': [],
+          'total_count': 0,
+        };
+      }
+    } catch (e) {
+
+      if (e.toString().contains('TimeoutException')) {
+        return {
+          'success': false, 
+          'message': 'การเชื่อมต่อใช้เวลานานเกินไป',
+          'announcements': [],
+          'total_count': 0,
+        };
+      } else if (e.toString().contains('SocketException')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+          'announcements': [],
+          'total_count': 0,
+        };
+      } else {
+        return {
+          'success': false, 
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+          'announcements': [],
+          'total_count': 0,
+        };
+      }
+    }
+  }
+
   // Get Mobile User by Driver ID (Function 10)
   static Future<Map<String, dynamic>> getMobileUserByDriverId(int driverId) async {
     try {
@@ -1637,4 +1722,168 @@ class ApiService {
       };
     }
   }
+
+  // Save fuel record with files to database
+  static Future<Map<String, dynamic>> saveFuelRecord(Map<String, dynamic> fuelData, List<String> firebaseUrls) async {
+    try {
+      print('🔥 ApiService.saveFuelRecord ENTRY');
+      print('📊 Data: $fuelData');
+      print('📸 Firebase URLs (${firebaseUrls.length} files): $firebaseUrls');
+
+      // สร้าง body สำหรับ POST request
+      Map<String, String> body = {
+        'f': '50', // Function number for saving fuel records
+        'inputDate': fuelData['inputDate']?.toString() ?? '',
+        'fuelType': fuelData['fuelType']?.toString() ?? '',
+        'amountFilled': fuelData['amountFilled']?.toString() ?? '0',
+        'totalCost': fuelData['totalCost']?.toString() ?? '0',
+        'odometer': fuelData['odometer']?.toString() ?? '0',
+        'driver_id': fuelData['driver_id']?.toString() ?? '',
+        'truck_id': fuelData['truck_id']?.toString() ?? '0',
+        'driverName': fuelData['driverName']?.toString() ?? '',
+      };
+
+      // เพิ่ม Firebase URLs เป็น array
+      for (int i = 0; i < firebaseUrls.length; i++) {
+        body['uploadedFilenames[$i]'] = firebaseUrls[i];
+      }
+
+      print('🔥 Final POST body: $body');
+
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body,
+      );
+
+      print('🔥 Response Status: ${response.statusCode}');
+      print('🔥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        print('📱 Parsed response: $responseData');
+
+        if (responseData['success'] == true) {
+          return {
+            'success': true,
+            'fuel_record_id': responseData['fuel_record_id'],
+            'message': responseData['message'] ?? 'บันทึกข้อมูลสำเร็จ',
+          };
+        } else {
+          return {
+            'success': false,
+            'message': responseData['message'] ?? 'เกิดข้อผิดพลาดในการบันทึก',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'HTTP Error: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('🔥 Save Fuel Record Error: $e');
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  // Get trucks by driver ID
+  static Future<Map<String, dynamic>> getTrucksByDriverId(int driverId) async {
+    try {
+      print('🔥 ApiService.getTrucksByDriverId ENTRY');
+      print('📊 Driver ID: $driverId');
+
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'f': '52', // Function number for getting trucks
+          'driver_id': driverId.toString(),
+        },
+      );
+
+      print('🔥 Response Status: ${response.statusCode}');
+      print('🔥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        print('📱 Parsed response: $responseData');
+
+        if (responseData['success'] == true) {
+          return {
+            'success': true,
+            'trucks': responseData['trucks'] ?? [],
+            'message': responseData['message'] ?? 'ดึงข้อมูลรถสำเร็จ',
+          };
+        } else {
+          return {
+            'success': false,
+            'trucks': [],
+            'message': responseData['message'] ?? 'ไม่พบข้อมูลรถ',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'trucks': [],
+          'message': 'HTTP Error: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('🔥 Get Trucks Error: $e');
+      return {
+        'success': false,
+        'trucks': [],
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  // Check current version from API
+  static Future<Map<String, dynamic>> checkCurrentVersion() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/check_current_version.php'),
+        headers: {'Accept': 'application/json'},
+      ).timeout(Duration(seconds: 30));
+
+      print('📱 Version check response status: ${response.statusCode}');
+      print('📱 Version check response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        
+        if (responseData['success'] == true) {
+          return {
+            'success': true,
+            'data': responseData['data'] ?? [],
+            'count': responseData['count'] ?? 0,
+          };
+        } else {
+          return {
+            'success': false,
+            'message': 'ไม่สามารถตรวจสอบเวอร์ชันได้',
+            'data': [],
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'HTTP Error: ${response.statusCode}',
+          'data': [],
+        };
+      }
+    } catch (e) {
+      print('❌ Version check error: $e');
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+        'data': [],
+      };
+    }
+  }
+
 }
