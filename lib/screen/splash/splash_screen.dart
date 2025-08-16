@@ -74,17 +74,17 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _initializeAnimations() {
     _mainAnimationController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: Duration(milliseconds: 600),
       vsync: this,
     );
 
     _progressAnimationController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 300),
       vsync: this,
     );
 
     _floatingAnimationController = AnimationController(
-      duration: Duration(milliseconds: 3000),
+      duration: Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -143,41 +143,46 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
+  Future<void> _initializeNotificationService() async {
+    try {
+      final notificationService = NotificationService();
+      await notificationService.initializeNotifications();
+      await notificationService.getDeviceToken();
+    } catch (e) {
+      // Silent error handling for notification setup
+    }
+  }
+
   Future<void> _startInitialization() async {
     try {
       // Step 1: Load environment variables
       await _updateProgress('กำลังโหลดการตั้งค่า...', 0.2);
       await dotenv.load(fileName: ".env");
-      await Future.delayed(Duration(milliseconds: 800));
+      await Future.delayed(Duration(milliseconds: 200));
 
-      // Step 2: Initialize Firebase
+      // Step 2: Initialize Firebase  
       await _updateProgress('กำลังเชื่อมต่อ Firebase...', 0.4);
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      await Future.delayed(Duration(milliseconds: 800));
+      await Future.delayed(Duration(milliseconds: 200));
 
       // Step 3: Setup notifications and request permission immediately
       await _updateProgress('กำลังตั้งค่าการแจ้งเตือน...', 0.5);
       
-      await NotificationService.createNotificationChannel();
+      // Run notification setup in parallel to save time
+      await Future.wait([
+        NotificationService.createNotificationChannel(),
+        _initializeNotificationService(),
+      ]);
       
-      // Initialize notification service and request permission right away
-      final notificationService = NotificationService();
-      await notificationService.initializeNotifications();
-      
-      // Get FCM token
-      await notificationService.getDeviceToken();
-      
-      await Future.delayed(Duration(milliseconds: 800));
-
-      await Future.delayed(Duration(milliseconds: 800));
+      await Future.delayed(Duration(milliseconds: 100));
 
       // Step 4: Check terms acceptance and login status
       await _updateProgress('กำลังตรวจสอบการเข้าสู่ระบบ...', 0.7);
       final termsAccepted = await LocalStorage.isTermsAccepted();
       final hasProfile = await LocalStorage.hasProfile();
-      await Future.delayed(Duration(milliseconds: 800));
+      await Future.delayed(Duration(milliseconds: 200));
 
       // Step 5: Final setup
       await _updateProgress('เกือบเสร็จแล้ว...', 0.9);
@@ -188,7 +193,9 @@ class _SplashScreenState extends State<SplashScreen>
           String? deviceId = await _getDeviceId();
           
           if (deviceId != null) {
-            final checkResult = await ApiService.checkDeviceAndUpdateActive(deviceId);
+            // Set timeout for API call to prevent long loading
+            final checkResult = await ApiService.checkDeviceAndUpdateActive(deviceId)
+                .timeout(Duration(seconds: 3), onTimeout: () => {'success': false});
             
             if (checkResult['success'] == true) {
               // อัพเดท profile ใน Local Storage ถ้ามีข้อมูลใหม่
@@ -213,7 +220,7 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
 
-      await Future.delayed(Duration(milliseconds: 1000));
+      await Future.delayed(Duration(milliseconds: 300));
 
       // Navigate based on terms acceptance and login status
       if (mounted) {

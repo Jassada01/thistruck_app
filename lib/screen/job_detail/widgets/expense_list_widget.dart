@@ -152,7 +152,7 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 16),
               _buildCostItem(context, 'ค่าล่วงเวลา', costData['overtime_fee'], 'overtime_fee'),
               _buildCostItem(context, 'ค่าผ่านท่า', costData['port_charge'], 'port_charge'),
               _buildCostItem(context, 'ค่าผ่านลาน', costData['yard_charge'], 'yard_charge'),
@@ -163,16 +163,30 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
               
               // รายการค่าใช้จ่ายเพิ่มเติม
               if (additionalExpenses.isNotEmpty) ...[
-                SizedBox(height: 16),
-                Text(
-                  'ค่าใช้จ่ายเพิ่มเติม',
-                  style: GoogleFonts.notoSansThai(
-                    fontSize: fontProvider.getScaledFontSize(16.0),
-                    fontWeight: FontWeight.bold,
-                    color: colors.textPrimary,
+                SizedBox(height: 24),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_circle_outline, color: Colors.orange.shade700, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'ค่าใช้จ่ายเพิ่มเติม',
+                        style: GoogleFonts.notoSansThai(
+                          fontSize: fontProvider.getScaledFontSize(16.0),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 12),
                 ...additionalExpenses.map((expense) => _buildAdditionalExpenseItem(context, expense)),
               ],
               
@@ -231,8 +245,17 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
     
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 8),
+        return Container(
+          margin: EdgeInsets.only(bottom: 12),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.orange.shade200,
+              width: 1,
+            ),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -243,34 +266,39 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
                       child: Text(
                         description,
                         style: GoogleFonts.notoSansThai(
-                          fontSize: fontProvider.getScaledFontSize(14.0),
+                          fontSize: fontProvider.getScaledFontSize(15.0),
                           color: colors.textSecondary,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    GestureDetector(
+                    SizedBox(width: 12),
+                    InkWell(
                       onTap: () => _deleteAdditionalExpense(context, expense),
+                      borderRadius: BorderRadius.circular(6),
                       child: Container(
-                        padding: EdgeInsets.all(4),
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                         child: Icon(
                           Icons.delete_outline,
-                          size: 16,
-                          color: Colors.red.withOpacity(0.7),
+                          size: 18,
+                          color: Colors.red.withValues(alpha: 0.8),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: 12),
               Text(
                 formattedAmount,
                 style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(14.0),
+                  fontSize: fontProvider.getScaledFontSize(15.0),
                   color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -285,45 +313,70 @@ class _ExpenseListWidgetState extends State<ExpenseListWidget> {
     final amount = value?.toString() ?? '0.00';
     final formattedAmount = _formatExpense(amount);
     
+    // Check if there's already data (not 0, 0.00, or empty)
+    final hasData = amount != '0' && amount != '0.00' && amount.isNotEmpty && formattedAmount != '-';
+    
     return Consumer<FontSizeProvider>(
       builder: (context, fontProvider, child) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.notoSansThai(
-                      fontSize: fontProvider.getScaledFontSize(isTotal ? 12.0 : 11.0),
-                      color: isTotal ? colors.textPrimary : colors.textSecondary,
-                      fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-                    ),
-                  ),
-                  if (!isTotal) ...[
-                    SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => _updateCostItem(context, label, fieldKey, amount),
-                      child: Icon(
-                        Icons.edit,
-                        size: 16,
-                        color: Colors.blue.withOpacity(0.7),
+        return Container(
+          margin: EdgeInsets.only(bottom: 12),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: isTotal ? colors.success.withValues(alpha: 0.1) : Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isTotal ? colors.success.withValues(alpha: 0.3) : Colors.grey.shade200,
+              width: 1,
+            ),
+          ),
+          child: InkWell(
+            onTap: isTotal ? null : () => _updateCostItem(context, label, fieldKey, amount),
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: GoogleFonts.notoSansThai(
+                            fontSize: fontProvider.getScaledFontSize(isTotal ? 16.0 : 15.0),
+                            color: isTotal ? colors.textPrimary : colors.textSecondary,
+                            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              Text(
-                formattedAmount,
-                style: GoogleFonts.notoSansThai(
-                  fontSize: fontProvider.getScaledFontSize(isTotal ? 12.0 : 11.0),
-                  color: isTotal ? colors.success : colors.textPrimary,
-                  fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+                      if (!isTotal) ...[
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: hasData ? 0.03 : 0.08),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: Colors.green.withValues(alpha: hasData ? 0.25 : 0.5),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(width: 12),
+                Text(
+                  formattedAmount,
+                  style: GoogleFonts.notoSansThai(
+                    fontSize: fontProvider.getScaledFontSize(isTotal ? 16.0 : 15.0),
+                    color: isTotal ? colors.success : colors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -67,13 +67,15 @@ class _TravelPlanWidgetState extends State<TravelPlanWidget> {
     if (widget.tripData == null) return SizedBox.shrink();
     
     final tripLocations = widget.tripData!['trip_locations'] as List? ?? [];
-    
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: 20),
       child: Column(
         children: [
           // Timeline widget at the top
-          TripTimelineWidget(tripLocations: tripLocations),
+          TripTimelineWidget(
+            tripLocations: tripLocations,
+            tripId: widget.tripData!['id']?.toString() ?? '',
+          ),
           // Existing integrated timeline below
           _buildIntegratedTimeline(),
         ],

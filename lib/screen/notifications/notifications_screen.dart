@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import '../../models/notification_model.dart';
 import '../../service/api_service.dart';
 import '../../widgets/notification_item_widget.dart';

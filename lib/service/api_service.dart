@@ -1886,4 +1886,186 @@ class ApiService {
     }
   }
 
+  // Save attached file info to database (Function 60)
+  static Future<Map<String, dynamic>> saveAttachedFile({
+    required String documentGroup,
+    required String documentGroupCode,
+    required String originalFileName,
+    required String filePath,
+    required String documentType,
+    required String fileType,
+    required bool isImage,
+    String? description,
+    String? thumbnailPath,
+    String? subDocId,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '60', // Function number for saveAttachedFile
+        'document_group': documentGroup,
+        'document_group_code': documentGroupCode,
+        'originalFileName': originalFileName,
+        'file_path': filePath,
+        'document_type': documentType,
+        'file_type': fileType,
+        'isImage': isImage ? '1' : '0',
+      };
+
+      // Add optional parameters
+      if (description != null && description.isNotEmpty) {
+        requestData['description'] = description;
+      }
+      if (thumbnailPath != null && thumbnailPath.isNotEmpty) {
+        requestData['thumbnail_path'] = thumbnailPath;
+      }
+      if (subDocId != null && subDocId.isNotEmpty) {
+        requestData['sub_doc_id'] = subDocId;
+      }
+
+      print('📤 Saving attached file info...');
+      print('📤 Document Group: $documentGroup');
+      print('📤 Document Group Code: $documentGroupCode');
+      print('📤 File Path: $filePath');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Save attached file response status: ${response.statusCode}');
+      print('📥 Save attached file response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Save attached file result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'บันทึกข้อมูลไฟล์เรียบร้อยแล้ว',
+            'file_id': result['file_id'],
+            'random_code': result['random_code'],
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'เกิดข้อผิดพลาดในการบันทึกข้อมูลไฟล์',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error saving attached file: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+        };
+      }
+    }
+  }
+
+  // Get attached files by document group and code (Function 61)
+  static Future<Map<String, dynamic>> getAttachedFiles({
+    required String documentGroup,
+    required String documentGroupCode,
+    String? subDocId,
+  }) async {
+    try {
+      // Prepare request data
+      Map<String, String> requestData = {
+        'f': '61', // Function number for getAttachedFiles
+        'document_group': documentGroup,
+        'document_group_code': documentGroupCode,
+      };
+
+      // Add optional parameter
+      if (subDocId != null && subDocId.isNotEmpty) {
+        requestData['sub_doc_id'] = subDocId;
+      }
+
+      print('📤 Getting attached files...');
+      print('📤 Document Group: $documentGroup');
+      print('📤 Document Group Code: $documentGroupCode');
+      if (subDocId != null) print('📤 Sub Doc ID: $subDocId');
+      
+      // Send POST request
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Accept': 'application/json',
+            },
+            body: requestData,
+          )
+          .timeout(Duration(seconds: 30));
+
+      print('📥 Get attached files response status: ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+        print('📋 Get attached files result: $result');
+        
+        if (result['status'] == 'success') {
+          return {
+            'success': true,
+            'files': result['files'] ?? [],
+            'total_count': result['total_count'] ?? 0,
+          };
+        } else {
+          return {
+            'success': false,
+            'message': result['message'] ?? 'ไม่พบไฟล์แนบ',
+            'files': [],
+            'total_count': 0,
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Server responded with status: ${response.statusCode}',
+          'files': [],
+          'total_count': 0,
+        };
+      }
+    } catch (e) {
+      print('❌ Error getting attached files: $e');
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection timed out')) {
+        return {
+          'success': false,
+          'message': 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้',
+          'files': [],
+          'total_count': 0,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+          'files': [],
+          'total_count': 0,
+        };
+      }
+    }
+  }
+
 }

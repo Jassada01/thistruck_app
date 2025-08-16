@@ -1,12 +1,10 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../service/local_storage.dart';
 import '../../service/api_service.dart';
-import '../../service/image_picker_service.dart';
-import '../../service/firebase_storage_service.dart';
 import '../../service/badge_service.dart';
 import '../../theme/app_theme.dart' as AppThemeConfig;
 import '../../provider/font_size_provider.dart';
@@ -33,6 +31,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoadingIncompleteJobs = false;
   final GlobalKey<AnnouncementListWidgetState> _announcementKey =
       GlobalKey<AnnouncementListWidgetState>();
+  
+  List<Map<String, dynamic>> _driverTrucks = [];
+  bool _isLoadingTrucks = false;
+  int _currentTruckIndex = 0;
+  Timer? _truckRotationTimer;
 
   @override
   void initState() {
@@ -41,7 +44,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadUnreadNotificationCount();
     _loadTodayJobs();
     _loadIncompleteJobs();
+    _loadDriverTrucks();
     _checkAppVersion();
+  }
+
+  @override
+  void dispose() {
+    _truckRotationTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -52,6 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadUnreadNotificationCount();
     _loadTodayJobs();
     _loadIncompleteJobs();
+    _loadDriverTrucks();
 
     // Reset badge when user returns to dashboard (app is in focus)
     _resetBadgeWhenAppInFocus();
@@ -76,6 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loadUnreadNotificationCount(),
         _loadTodayJobs(),
         _loadIncompleteJobs(),
+        _loadDriverTrucks(),
         if (_announcementKey.currentState != null)
           _announcementKey.currentState!.refreshAnnouncements(),
       ]);
@@ -123,6 +135,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _userProfile = profile;
       });
     }
+  }
+
+  Future<void> _loadDriverTrucks() async {
+    try {
+      final profile = await LocalStorage.getProfile();
+      if (profile != null && 
+          profile['driver_id'] != null && 
+          (profile['driver_type']?.toString().toLowerCase() == 'driver' || 
+           profile['user_type']?.toString().toLowerCase() == 'driver')) {
+        
+        setState(() {
+          _isLoadingTrucks = true;
+        });
+
+        final int driverId = int.parse(profile['driver_id'].toString());
+        final result = await ApiService.getTrucksByDriverId(driverId);
+
+        if (mounted) {
+          setState(() {
+            if (result['success'] && result['trucks'] != null) {
+              _driverTrucks = List<Map<String, dynamic>>.from(result['trucks']);
+              _startTruckRotation();
+            } else {
+              _driverTrucks = [];
+            }
+            _isLoadingTrucks = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _driverTrucks = [];
+            _isLoadingTrucks = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _driverTrucks = [];
+          _isLoadingTrucks = false;
+        });
+        _stopTruckRotation();
+      }
+    }
+  }
+
+  void _startTruckRotation() {
+    if (_driverTrucks.length <= 1) return;
+    
+    _stopTruckRotation();
+    _truckRotationTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+      if (mounted && _driverTrucks.isNotEmpty) {
+        setState(() {
+          _currentTruckIndex = (_currentTruckIndex + 1) % _driverTrucks.length;
+        });
+      }
+    });
+  }
+
+  void _stopTruckRotation() {
+    _truckRotationTimer?.cancel();
+    _truckRotationTimer = null;
   }
 
   Future<void> _loadUnreadNotificationCount() async {
@@ -825,27 +900,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               SizedBox(width: 15),
 
-              // Greeting and name
+              // Date display only
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      '${_getGreetingByTime()}, ${_userProfile?['user_name']?.split(' ').first ?? 'Driver'}',
-                      style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(18.0),
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
                     Text(
                       'วันนี้ ${_getCurrentDateStringThai()}',
                       style: GoogleFonts.notoSansThai(
-                        fontSize: fontProvider.getScaledFontSize(14.0),
-                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: fontProvider.getScaledFontSize(16.0),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
+                    // Driver Trucks (compact display)
+                    if (_isDriverUser() && _driverTrucks.isNotEmpty) ...[
+                      SizedBox(height: 6),
+                      _buildCompactTruckDisplay(fontProvider),
+                    ],
                   ],
                 ),
               ),
@@ -1720,44 +1793,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> _handleDashboardImageUpload(File imageFile) async {
-    try {
-      // Get driver ID
-      final String? driverId = _userProfile?['driver_id']?.toString();
-
-      if (driverId == null) {
-        return;
-      }
-
-      // Upload to Firebase Storage
-      final uploadResult = await FirebaseStorageService.uploadProfileImage(
-        imageFile: imageFile,
-        driverId: driverId,
-      );
-
-      if (uploadResult['success']) {
-        // Update database with new image URL
-        final String imageUrl = uploadResult['downloadUrl'];
-
-        final apiResult = await ApiService.updateProfileImage(
-          driverId: driverId,
-          imageUrl: imageUrl,
-        );
-
-        if (apiResult['success']) {
-          // Update local storage with new profile data
-          if (apiResult['profile_data'] != null) {
-            await LocalStorage.saveProfile(apiResult['profile_data']);
-          }
-
-          // Reload profile
-          _loadUserProfile();
-        }
-      }
-    } catch (e) {
-      // Silent error handling
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1768,14 +1803,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Scaffold(
           backgroundColor: colors.background,
           appBar: AppBar(
-            title: Text(
-              _selectedIndex == 0 ? 'หน้าหลัก' : 'รายการงาน',
-              style: GoogleFonts.notoSansThai(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: fontProvider.getScaledFontSize(18.0),
-              ),
-            ),
+            title: _selectedIndex == 0 
+              ? _buildAppBarGreeting(fontProvider)
+              : Text(
+                  'รายการงาน',
+                  style: GoogleFonts.notoSansThai(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: fontProvider.getScaledFontSize(18.0),
+                  ),
+                ),
             elevation: 0,
             automaticallyImplyLeading: false,
             flexibleSpace: Container(
@@ -1929,4 +1966,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return 'สวัสดียามหัวรุ่ง';
     }
   }
+
+  bool _isDriverUser() {
+    if (_userProfile == null) return false;
+    
+    final driverType = _userProfile!['driver_type']?.toString().toLowerCase();
+    final userType = _userProfile!['user_type']?.toString().toLowerCase();
+    
+    return driverType == 'driver' || userType == 'driver';
+  }
+
+  Widget _buildAppBarGreeting(FontSizeProvider fontProvider) {
+    return Text(
+      '${_getGreetingByTime()}, ${_userProfile?['user_name']?.split(' ').first ?? 'Driver'}',
+      style: GoogleFonts.notoSansThai(
+        fontSize: fontProvider.getScaledFontSize(16.0),
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildCompactTruckDisplay(FontSizeProvider fontProvider) {
+    if (_driverTrucks.isEmpty) return SizedBox.shrink();
+    
+    // แสดงรถตาม index ปัจจุบัน หรือถ้ามี 1 คันให้แสดงรถคันเดียว
+    final currentTruck = _driverTrucks[_currentTruckIndex % _driverTrucks.length];
+    final displayName = currentTruck['display_name'] ?? 
+                       '${currentTruck['truck_number'] ?? 'ไม่ระบุ'} - ${currentTruck['province'] ?? 'ไม่ระบุ'}';
+    
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.local_shipping,
+            size: 14,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+          SizedBox(width: 6),
+          Flexible(
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: 500),
+              child: Text(
+                _driverTrucks.length > 1 
+                    ? '$displayName (${_currentTruckIndex + 1}/${_driverTrucks.length})'
+                    : displayName,
+                key: ValueKey(_currentTruckIndex),
+                style: GoogleFonts.notoSansThai(
+                  fontSize: fontProvider.getScaledFontSize(12.0),
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
